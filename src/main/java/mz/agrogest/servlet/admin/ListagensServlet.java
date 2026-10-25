@@ -1,6 +1,7 @@
 package mz.agrogest.servlet.admin;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.servlet.ServletException;
@@ -12,6 +13,7 @@ import mz.agrogest.service.CatalogoService;
 import mz.agrogest.service.RelatorioService;
 import mz.agrogest.service.UtilizadorService;
 import mz.agrogest.servlet.BaseServlet;
+import mz.agrogest.util.Pagina;
 import mz.agrogest.util.Parametros;
 
 /**
@@ -39,13 +41,16 @@ public class ListagensServlet extends BaseServlet {
         }
         boolean desc = "desc".equals(Parametros.texto(req, "dir"));
 
-        switch (tipo) {
-            case "fornecedores" -> req.setAttribute("lista", relatorios.fornecedores(ordem, desc));
-            case "clientes" -> req.setAttribute("lista", relatorios.clientes(ordem, desc));
-            case "armazem" -> req.setAttribute("lista", relatorios.armazem(ordem, desc));
-            case "compras" -> req.setAttribute("lista", relatorios.compras(ordem, desc));
-            default -> req.setAttribute("lista", relatorios.produtos(ordem, desc));
-        }
+        List<?> todos = switch (tipo) {
+            case "fornecedores" -> relatorios.fornecedores(ordem, desc);
+            case "clientes" -> relatorios.clientes(ordem, desc);
+            case "armazem" -> relatorios.armazem(ordem, desc);
+            case "compras" -> relatorios.compras(ordem, desc);
+            default -> relatorios.produtos(ordem, desc);
+        };
+        Pagina<?> pagina = Pagina.de(todos, Parametros.inteiroOuPadrao(req, "pagina", 1));
+        req.setAttribute("pagina", pagina);
+        req.setAttribute("lista", pagina.getItens());
         req.setAttribute("tipo", tipo);
         req.setAttribute("ordem", ordem);
         req.setAttribute("desc", desc);

@@ -148,16 +148,17 @@ Campanha   1 ── N Cultivo 1 ── N Colheita
 |---|---|---|
 | `/` | público | Página inicial (quem tem sessão vai para o catálogo ou para o painel) |
 | `/login`, `/registo`, `/logout` | público | Autenticação e auto-registo |
-| `/catalogo` | sessão | Catálogo com filtro por categoria |
-| `/carrinho`, `/carrinho/{adicionar,atualizar,remover,esvaziar}` | sessão | Carrinho guardado na sessão HTTP |
-| `/compra` | sessão | Confirmação (GET) e finalização da compra (POST) |
+| `/catalogo` | sessão | Catálogo com filtro por categoria e pesquisa (o admin vê só para consulta) |
+| `/carrinho`, `/carrinho/{adicionar,atualizar,remover,esvaziar,ajustar}` | cliente | Carrinho guardado na sessão HTTP |
+| `/compra` | cliente | Confirmação (GET) e finalização da compra (POST) |
 | `/factura?id=` | sessão | Factura (cliente só vê as suas) |
-| `/minhas-compras` | sessão | Histórico do cliente |
+| `/minhas-compras` | cliente | Histórico do cliente |
+| `/perfil` | cliente | Alterar dados de facturação e palavra-passe |
 | `/admin` | admin | Dashboard |
 | `/admin/fornecedores`, `/admin/produtos` | admin | Gestão do catálogo (criar, editar, repor stock, remover) |
 | `/admin/campanhas`, `/admin/cultivos`, `/admin/colheitas` | admin | Gestão agrícola |
 | `/admin/listagens?tipo=&ordem=&dir=` | admin | Listagens ordenáveis (produtos, fornecedores, clientes, armazém, compras) |
-| `/admin/compras` | admin | Compras detalhadas |
+| `/admin/compras` | admin | Compras detalhadas (paginadas) e anulação de vendas |
 | `/admin/relatorios` | admin | Relatórios de clientes |
 | `/admin/persistencia` | admin | Gravação e eliminação manual do ficheiro |
 
@@ -190,10 +191,28 @@ Os tipos de letra vêm do Google Fonts; sem Internet, o browser usa Georgia e o 
 | Fornecedor com produtos não pode ser removido | `CatalogoService.removerFornecedor` |
 | Campanha fechada não aceita cultivos nem colheitas | `AgricolaService.criarCultivo` / `criarColheita` |
 | Email único no registo | `UtilizadorService.criar` |
+| Não se vendem produtos fora de validade | `VendaService` (ao adicionar e na compra) |
+| Máximo de 10 000 unidades por linha; só números inteiros | `VendaService.exigirStock`, `Parametros.inteiro` |
+| O administrador não compra (carrinho, compra e perfil são só do cliente) | `AuthFilter` + `VendaService.registarVenda` |
+| Anular uma venda devolve as quantidades ao stock e tira-a da facturação | `VendaService.anularVenda` |
+| Fornecedor só vende as categorias do seu tipo (SEMENTES → SEMENTE, …) | `TipoFornecedor` + `CatalogoService.validarProduto` |
+| Nome de produto único por fornecedor; nome de fornecedor e de campanha únicos | `CatalogoService`, `AgricolaService` |
+| Unidade, província e cultura escolhidas de listas fechadas | `Opcoes` (validado no servidor) |
+| Validade não pode ser passada; preço ≤ 10 000 000 MT; stock ≤ 1 000 000 | `CatalogoService.validarProduto` |
+| Telefone moçambicano (82–87 ou fixo 2x) guardado num formato único | `Validacao.telefone` |
+| Nome de cliente com nome e apelido, só letras | `Validacao.nomePessoa` |
+| Campanha: fim depois do início, no máximo 24 meses; aviso de sobreposição | `AgricolaService.validarCampanha` / `sobreposicoes` |
+| Plantio dentro das datas da campanha | `AgricolaService.criarCultivo` |
+| Colheita depois do plantio e até 6 meses após o fim da campanha | `AgricolaService.criarColheita` |
+| Hectares, kg e preço/kg com máximos e no máximo 2 casas decimais | `Validacao.positivo` |
 
 **Concorrência:** todas as escritas são feitas em `synchronized (DataStore.get())`, o mesmo trinco usado pela
 persistência. O teste `comprasConcorrentesNuncaVendemMaisDoQueOStock` lança 20 compras em paralelo sobre um
 produto com 10 unidades e verifica que só 10 têm sucesso e que o stock termina em 0.
+
+**Formulários:** quando uma acção falha, a mensagem aparece no topo **e junto ao campo com erro**, que fica
+assinalado, e os valores escritos são repostos. Os campos numéricos têm `max` igual ao stock disponível; os
+botões de envio desactivam-se depois do primeiro clique (evita compras duplicadas).
 
 **Factura:** número `FT-<ano>-<n>` com sequência própria por ano, IVA de 16% sobre o subtotal,
 dados do cliente copiados no momento da compra e botão **Imprimir** (estilos `@media print`).
@@ -218,7 +237,8 @@ dados do cliente copiados no momento da compra e botão **Imprimir** (estilos `@
 
 - Palavras-passe guardadas com **PBKDF2-HMAC-SHA256** (65 536 iterações, sal aleatório). Nunca em texto puro.
 - O ID da sessão muda no login (protecção contra fixação de sessão).
-- Cookie de sessão `HttpOnly` e `SameSite=Lax` (protege os formulários POST contra CSRF entre sites).
+- **Token CSRF** em todos os formulários POST (`CsrfFilter`), além do cookie de sessão `HttpOnly` e `SameSite=Lax`.
+- **Limite de tentativas de login:** 5 falhas seguidas bloqueiam o email durante 1 minuto (`TentativasLogin`).
 - Todas as acções que alteram dados são `POST`. Os dados escritos pelos utilizadores são escapados nas JSP (`<c:out>`).
 - As JSP ficam em `WEB-INF/views` e só são acessíveis através dos servlets.
 - A foto do produto só aceita `http://`, `https://` ou um caminho da aplicação começado por `/`.
@@ -232,9 +252,11 @@ dados do cliente copiados no momento da compra e botão **Imprimir** (estilos `@
 ./mvnw test
 ```
 
-17 testes (`RegrasNegocioTest` e `FormatosTest`) cobrem: compra com IVA, stock insuficiente,
-venda atómica, compras concorrentes, numeração das facturas, visibilidade das facturas, email único, hash das
-passwords, remoções protegidas, campanha fechada, relatórios e persistência (incluindo recuperação pelo `.bak`).
+36 testes (`RegrasNegocioTest`, `ValidacaoTest` e `FormatosTest`) cobrem: compra com IVA, stock insuficiente,
+venda atómica, compras concorrentes, produtos fora de validade, limite por linha, "ajustar ao stock", anulação de
+vendas, numeração das facturas, visibilidade das facturas, validação de nome/telefone/província, alteração de
+palavra-passe, bloqueio de login, categorias por tipo de fornecedor, nomes únicos, datas de plantio e colheita,
+pesquisa sem acentos, paginação, relatórios e persistência (incluindo recuperação pelo `.bak`).
 
 ---
 

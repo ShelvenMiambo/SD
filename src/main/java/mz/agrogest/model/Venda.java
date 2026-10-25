@@ -22,6 +22,8 @@ public class Venda implements Serializable {
     private BigDecimal subtotal;
     private BigDecimal iva;
     private BigDecimal total;
+    private boolean anulada;
+    private LocalDateTime dataAnulacao;
 
     public Venda() {
     }
@@ -53,5 +55,9 @@ public class Venda implements Serializable {
     public BigDecimal getIva() { return iva; }
     public void setIva(BigDecimal iva) { this.iva = iva; }
     public BigDecimal getTotal() { return total; }
+    public boolean isAnulada() { return anulada; }
+    public void setAnulada(boolean anulada) { this.anulada = anulada; }
+    public LocalDateTime getDataAnulacao() { return dataAnulacao; }
+    public void setDataAnulacao(LocalDateTime dataAnulacao) { this.dataAnulacao = dataAnulacao; }
     public void setTotal(BigDecimal total) { this.total = total; }
 }

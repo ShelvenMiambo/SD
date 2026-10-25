@@ -2,6 +2,7 @@ package mz.agrogest.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +19,7 @@ import mz.agrogest.model.Venda;
 import mz.agrogest.model.VendaItem;
 import mz.agrogest.repo.DataStore;
 import mz.agrogest.repo.DataStore.Sequencia;
+import mz.agrogest.util.Formatos;
 
 /**
  * Carrinho, checkout e facturas.
@@ -26,39 +28,69 @@ import mz.agrogest.repo.DataStore.Sequencia;
  * <ul>
  *   <li>RN-a: não se vende mais do que o stock disponível;</li>
  *   <li>RN-b: a venda desconta o stock de todos os itens atomicamente (tudo ou nada);</li>
- *   <li>RN-c: um cliente só vê as suas facturas; o admin vê todas.</li>
+ *   <li>RN-c: um cliente só vê as suas facturas; o admin vê todas;</li>
+ *   <li>não se vendem produtos fora de validade; no máximo {@value #MAXIMO_POR_LINHA} unidades por linha.</li>
  * </ul>
  */
 public class VendaService {
     public static final BigDecimal TAXA_IVA = new BigDecimal("0.16");
+    public static final int MAXIMO_POR_LINHA = 10_000;
 
     private final CatalogoService catalogo = new CatalogoService();
 
     // ---------- Carrinho ----------
 
-    /** Adiciona ao carrinho, validando que o produto existe e que há stock para o total pedido. */
+    /** Adiciona ao carrinho, validando que o produto existe, está dentro da validade e há stock para o total pedido. */
     public void adicionarAoCarrinho(Carrinho carrinho, int produtoId, int quantidade) {
         if (quantidade <= 0) {
-            throw new NegocioException("A quantidade deve ser maior que zero.");
+            throw new NegocioException("A quantidade deve ser maior que zero.", "quantidade");
         }
         Produto p = catalogo.produto(produtoId)
                 .orElseThrow(() -> new NegocioException("O produto pedido não existe."));
+        exigirVendavel(p, LocalDate.now());
         int novoTotal = carrinho.quantidadeDe(produtoId) + quantidade;
-        exigirStock(p, novoTotal);
+        exigirStock(p, novoTotal, carrinho.quantidadeDe(produtoId));
         carrinho.definir(produtoId, novoTotal);
     }
 
     /** Define a quantidade de uma linha (0 remove a linha). */
     public void atualizarCarrinho(Carrinho carrinho, int produtoId, int quantidade) {
         if (quantidade < 0) {
-            throw new NegocioException("A quantidade não pode ser negativa.");
+            throw new NegocioException("A quantidade não pode ser negativa.", "quantidade");
         }
         if (quantidade > 0) {
             Produto p = catalogo.produto(produtoId)
                     .orElseThrow(() -> new NegocioException("O produto pedido não existe."));
-            exigirStock(p, quantidade);
+            exigirVendavel(p, LocalDate.now());
+            exigirStock(p, quantidade, 0);
         }
         carrinho.definir(produtoId, quantidade);
+    }
+
+    /**
+     * Ajusta cada linha ao stock actual: reduz o que excede e retira produtos esgotados ou fora de validade.
+     *
+     * @return número de linhas alteradas
+     */
+    public int ajustarAoStock(Carrinho carrinho) {
+        int alteradas = 0;
+        for (Map.Entry<Integer, Integer> e : carrinho.getItens().entrySet()) {
+            Optional<Produto> op = catalogo.produto(e.getKey());
+            int possivel = op.filter(p -> !Formatos.expirado(p.getValidade()))
+                    .map(p -> Math.min(e.getValue(), Math.min(p.getQuantidade(), MAXIMO_POR_LINHA)))
+                    .orElse(0);
+            if (possivel != e.getValue()) {
+                carrinho.definir(e.getKey(), possivel);
+                alteradas++;
+            }
+        }
+        return alteradas;
+    }
+
+    /** Quanto ainda se pode adicionar de um produto, descontando o que já está no carrinho. */
+    public static int disponivelParaAdicionar(Produto p, Carrinho carrinho) {
+        int noCarrinho = carrinho == null ? 0 : carrinho.quantidadeDe(p.getId());
+        return Math.max(0, Math.min(p.getQuantidade(), MAXIMO_POR_LINHA) - noCarrinho);
     }
 
     /**
@@ -116,14 +148,18 @@ public class VendaService {
                 int qtd = e.getValue();
                 if (op.isEmpty()) {
                     erros.add("Um dos produtos do carrinho já não existe no catálogo.");
-                } else if (qtd <= 0) {
-                    erros.add("Quantidade inválida para " + op.get().getNome() + ".");
-                } else if (qtd > op.get().getQuantidade()) {
-                    Produto p = op.get();
+                    continue;
+                }
+                Produto p = op.get();
+                if (qtd <= 0 || qtd > MAXIMO_POR_LINHA) {
+                    erros.add("Quantidade inválida para " + p.getNome() + ".");
+                } else if (p.getValidade() != null && p.getValidade().isBefore(data.toLocalDate())) {
+                    erros.add(p.getNome() + " está fora de validade.");
+                } else if (qtd > p.getQuantidade()) {
                     erros.add("Stock insuficiente para " + p.getNome() + ": pedido " + qtd
                             + " " + p.getUnidade() + ", disponível " + p.getQuantidade() + ".");
                 } else {
-                    produtos.add(op.get());
+                    produtos.add(p);
                 }
             }
             if (!erros.isEmpty()) {
@@ -139,7 +175,7 @@ public class VendaService {
             v.setClienteNome(cliente.getNome());
             v.setClienteEmail(cliente.getEmail());
             v.setClienteTelefone(cliente.getTelefone());
-            v.setClienteEndereco(cliente.getEndereco());
+            v.setClienteEndereco(cliente.getEnderecoCompleto());
             v.setData(data);
             for (Produto p : produtos) {
                 int qtd = itens.get(p.getId());
@@ -156,10 +192,42 @@ public class VendaService {
         }
     }
 
-    private static void exigirStock(Produto p, int quantidadePedida) {
+    /**
+     * Anula uma venda (por exemplo, por engano) e devolve as quantidades ao stock.
+     * A factura mantém o número, fica marcada como anulada e deixa de contar na facturação e nos relatórios.
+     */
+    public Venda anularVenda(int id) {
+        DataStore ds = DataStore.get();
+        synchronized (ds) {
+            Venda v = venda(id).orElseThrow(() -> new NegocioException("Venda não encontrada."));
+            if (v.isAnulada()) {
+                throw new NegocioException("A factura " + v.getNumeroFactura() + " já está anulada.");
+            }
+            for (VendaItem i : v.getItens()) {
+                catalogo.produto(i.getProdutoId()).ifPresent(p -> p.setQuantidade(p.getQuantidade() + i.getQuantidade()));
+            }
+            v.setAnulada(true);
+            v.setDataAnulacao(LocalDateTime.now());
+            return v;
+        }
+    }
+
+    private static void exigirVendavel(Produto p, LocalDate dia) {
+        if (p.getValidade() != null && p.getValidade().isBefore(dia)) {
+            throw new NegocioException(p.getNome() + " está fora de validade desde "
+                    + Formatos.data(p.getValidade()) + " e não pode ser vendido.");
+        }
+    }
+
+    private static void exigirStock(Produto p, int quantidadePedida, int jaNoCarrinho) {
+        if (quantidadePedida > MAXIMO_POR_LINHA) {
+            throw new NegocioException("No máximo " + MAXIMO_POR_LINHA + " " + p.getUnidade()
+                    + " de " + p.getNome() + " por compra.", "quantidade");
+        }
         if (quantidadePedida > p.getQuantidade()) {
+            String jaTem = jaNoCarrinho > 0 ? " (já tem " + jaNoCarrinho + " no carrinho)" : "";
             throw new NegocioException("Indisponível: só há " + p.getQuantidade() + " " + p.getUnidade()
-                    + " de " + p.getNome() + " em stock.");
+                    + " de " + p.getNome() + " em stock" + jaTem + ".", "quantidade");
         }
     }
 
@@ -169,6 +237,11 @@ public class VendaService {
         return DataStore.copia(DataStore.get().getVendas()).stream()
                 .sorted(Comparator.comparing(Venda::getData).reversed())
                 .toList();
+    }
+
+    /** Vendas que contam para facturação e relatórios (não anuladas). */
+    public List<Venda> vendasValidas() {
+        return vendas().stream().filter(v -> !v.isAnulada()).toList();
     }
 
     public List<Venda> vendasDoCliente(int clienteId) {
@@ -185,6 +258,6 @@ public class VendaService {
     }
 
     public BigDecimal faturacaoTotal() {
-        return vendas().stream().map(Venda::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return vendasValidas().stream().map(Venda::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -15,11 +15,11 @@
                 <div class="alerta erro" role="alert"><svg class="ic"><use href="#i-aviso"/></svg><span><c:out value="${erro}"/></span></div>
             </c:if>
 
-            <form method="post" action="${ctx}/registo" class="form">
+            <form method="post" action="${ctx}/registo" class="form"><input type="hidden" name="_csrf" value="${csrf}">
                 <label>Nome completo
                     <span class="campo-icone">
                         <svg class="ic"><use href="#i-utilizador"/></svg>
-                        <input type="text" name="nome" value="<c:out value='${param.nome}'/>" required maxlength="100" autocomplete="name">
+                        <input type="text" name="nome" value="<c:out value='${param.nome}'/>" placeholder="Nome e apelido" required minlength="3" maxlength="100" autocomplete="name">
                     </span>
                 </label>
                 <label>Email
@@ -32,8 +32,9 @@
                     <label>Palavra-passe
                         <span class="campo-icone">
                             <svg class="ic"><use href="#i-cadeado"/></svg>
-                            <input type="password" name="password" placeholder="Mín. 4" required minlength="4" autocomplete="new-password">
+                            <input type="password" name="password" placeholder="Mín. 4" required minlength="4" maxlength="72" autocomplete="new-password" data-forca="forca-registo">
                         </span>
+                        <span class="forca" id="forca-registo" aria-live="polite"></span>
                     </label>
                     <label>Confirmar
                         <span class="campo-icone">
@@ -45,16 +46,26 @@
                 <label>Telefone
                     <span class="campo-icone">
                         <svg class="ic"><use href="#i-telefone"/></svg>
-                        <input type="tel" name="telefone" value="<c:out value='${param.telefone}'/>" placeholder="+258 84 000 0000" required maxlength="30" autocomplete="tel">
+                        <input type="tel" name="telefone" value="<c:out value='${param.telefone}'/>" placeholder="+258 84 000 0000" required maxlength="30" autocomplete="tel"
+                               pattern="\+?[0-9 \(\)\-]{8,20}" title="Número moçambicano, ex.: +258 84 123 4567">
                     </span>
+                    <span class="ajuda">Telemóvel 82–87 ou fixo 2x, com ou sem +258.</span>
+                </label>
+                <label>Província
+                    <select name="provincia" required>
+                        <option value="">Escolha…</option>
+                        <c:forEach var="pv" items="${provincias}">
+                            <option value="${pv}" ${param.provincia == pv ? 'selected' : ''}>${pv}</option>
+                        </c:forEach>
+                    </select>
                 </label>
                 <label>Endereço
                     <span class="campo-icone">
                         <svg class="ic"><use href="#i-local"/></svg>
-                        <input type="text" name="endereco" value="<c:out value='${param.endereco}'/>" placeholder="Av. Eduardo Mondlane, Nampula" required maxlength="200" autocomplete="street-address">
+                        <input type="text" name="endereco" value="<c:out value='${param.endereco}'/>" placeholder="Bairro, rua e número" required maxlength="200" autocomplete="street-address">
                     </span>
                 </label>
-                <button type="submit" class="btn bloco grande">Criar conta</button>
+                <button type="submit" class="btn bloco grande" data-a-processar>Criar conta</button>
             </form>
 
             <p class="rodape-auth">Já tem conta? <a href="${ctx}/login">Entrar</a></p>

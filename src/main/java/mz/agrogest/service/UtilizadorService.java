@@ -9,11 +9,15 @@ import mz.agrogest.model.Perfil;
 import mz.agrogest.model.Utilizador;
 import mz.agrogest.repo.DataStore;
 import mz.agrogest.repo.DataStore.Sequencia;
+import mz.agrogest.util.Opcoes;
 import mz.agrogest.util.PasswordUtil;
+import mz.agrogest.util.Validacao;
 
 public class UtilizadorService {
-    private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final int PASSWORD_MINIMA = 4;
+    private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$");
+    /** Mínimo de 4 caracteres: o exemplo do enunciado usa "1234". */
+    public static final int PASSWORD_MINIMA = 4;
+    private static final int PASSWORD_MAXIMA = 72;
 
     /** Devolve o utilizador se o email e a palavra-passe estiverem corretos e a conta estiver ativa. */
     public Optional<Utilizador> autenticar(String email, String password) {
@@ -23,44 +27,95 @@ public class UtilizadorService {
     }
 
     public Utilizador registarCliente(String nome, String email, String password,
-                                      String telefone, String endereco) {
-        return criar(nome, email, password, telefone, endereco, Perfil.CLIENTE);
+                                      String telefone, String provincia, String endereco) {
+        String nomeOk = Validacao.nomePessoa(nome, "nome");
+        String emailOk = validarEmail(email);
+        validarPassword(password, "password");
+        String telefoneOk = Validacao.telefone(telefone, "telefone");
+        String provinciaOk = validarProvincia(provincia);
+        String enderecoOk = Validacao.texto(endereco, 200, "endereço", "endereco");
+        return criar(nomeOk, emailOk, password, telefoneOk, provinciaOk, enderecoOk, Perfil.CLIENTE);
     }
 
     public Utilizador criarAdmin(String nome, String email, String password) {
-        return criar(nome, email, password, "", "", Perfil.ADMIN);
+        return criar(Validacao.texto(nome, 100, "nome", "nome"), validarEmail(email), password, "", "", "", Perfil.ADMIN);
     }
 
     private Utilizador criar(String nome, String email, String password, String telefone,
-                             String endereco, Perfil perfil) {
-        String emailNorm = email == null ? "" : email.trim().toLowerCase();
-        if (nome == null || nome.isBlank()) {
-            throw new NegocioException("O nome é obrigatório.");
-        }
-        if (!EMAIL.matcher(emailNorm).matches()) {
-            throw new NegocioException("Email inválido.");
-        }
-        if (password == null || password.length() < PASSWORD_MINIMA) {
-            throw new NegocioException("A palavra-passe deve ter pelo menos " + PASSWORD_MINIMA + " caracteres.");
-        }
-        if (perfil == Perfil.CLIENTE) {
-            if (telefone == null || telefone.isBlank()) {
-                throw new NegocioException("O telefone é obrigatório.");
-            }
-            if (endereco == null || endereco.isBlank()) {
-                throw new NegocioException("O endereço é obrigatório.");
-            }
-        }
+                             String provincia, String endereco, Perfil perfil) {
         DataStore ds = DataStore.get();
         synchronized (ds) {
-            if (porEmail(emailNorm).isPresent()) {
-                throw new NegocioException("Já existe uma conta com o email " + emailNorm + ".");
+            if (porEmail(email).isPresent()) {
+                throw new NegocioException("Já existe uma conta com o email " + email + ".", "email");
             }
-            Utilizador u = new Utilizador(ds.proximoId(Sequencia.UTILIZADOR), nome.trim(), emailNorm,
-                    PasswordUtil.hash(password), perfil, telefone.trim(), endereco.trim());
+            Utilizador u = new Utilizador(ds.proximoId(Sequencia.UTILIZADOR), nome, email,
+                    PasswordUtil.hash(password), perfil, telefone, endereco);
+            u.setProvincia(provincia);
             ds.getUtilizadores().add(u);
             return u;
         }
+    }
+
+    /** O cliente altera os seus dados de contacto. O email não muda (é o identificador da conta). */
+    public Utilizador atualizarPerfil(int id, String nome, String telefone, String provincia, String endereco) {
+        String nomeOk = Validacao.nomePessoa(nome, "nome");
+        String telefoneOk = Validacao.telefone(telefone, "telefone");
+        String provinciaOk = validarProvincia(provincia);
+        String enderecoOk = Validacao.texto(endereco, 200, "endereço", "endereco");
+        DataStore ds = DataStore.get();
+        synchronized (ds) {
+            Utilizador u = porId(id).orElseThrow(() -> new NegocioException("Conta não encontrada."));
+            u.setNome(nomeOk);
+            u.setTelefone(telefoneOk);
+            u.setProvincia(provinciaOk);
+            u.setEndereco(enderecoOk);
+            return u;
+        }
+    }
+
+    public void alterarPassword(int id, String atual, String nova, String confirmacao) {
+        DataStore ds = DataStore.get();
+        synchronized (ds) {
+            Utilizador u = porId(id).orElseThrow(() -> new NegocioException("Conta não encontrada."));
+            if (!PasswordUtil.verificar(atual, u.getPasswordHash())) {
+                throw new NegocioException("A palavra-passe actual está errada.", "atual");
+            }
+            validarPassword(nova, "nova");
+            if (!nova.equals(confirmacao)) {
+                throw new NegocioException("A confirmação não coincide com a nova palavra-passe.", "confirmacao");
+            }
+            if (PasswordUtil.verificar(nova, u.getPasswordHash())) {
+                throw new NegocioException("A nova palavra-passe tem de ser diferente da actual.", "nova");
+            }
+            u.setPasswordHash(PasswordUtil.hash(nova));
+        }
+    }
+
+    private static String validarEmail(String email) {
+        String e = email == null ? "" : email.trim().toLowerCase();
+        if (e.length() > 120 || !EMAIL.matcher(e).matches()) {
+            throw new NegocioException("Email inválido.", "email");
+        }
+        return e;
+    }
+
+    private static void validarPassword(String password, String campo) {
+        if (password == null || password.length() < PASSWORD_MINIMA) {
+            throw new NegocioException("A palavra-passe deve ter pelo menos " + PASSWORD_MINIMA + " caracteres.", campo);
+        }
+        if (password.length() > PASSWORD_MAXIMA) {
+            throw new NegocioException("A palavra-passe tem no máximo " + PASSWORD_MAXIMA + " caracteres.", campo);
+        }
+        if (password.isBlank()) {
+            throw new NegocioException("A palavra-passe não pode ser só espaços.", campo);
+        }
+    }
+
+    private static String validarProvincia(String provincia) {
+        if (provincia == null || !Opcoes.PROVINCIAS.contains(provincia)) {
+            throw new NegocioException("Escolha a província da lista.", "provincia");
+        }
+        return provincia;
     }
 
     public Optional<Utilizador> porEmail(String email) {

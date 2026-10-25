@@ -36,7 +36,7 @@ public class CompraServlet extends BaseServlet {
         req.setAttribute("subtotal", subtotal);
         req.setAttribute("iva", iva);
         req.setAttribute("total", subtotal.add(iva));
-        req.setAttribute("stockOk", linhas.stream().allMatch(LinhaCarrinho::isStockSuficiente));
+        req.setAttribute("stockOk", CarrinhoServlet.linhasValidas(linhas));
         req.setAttribute("cliente", utilizador(req));
         render(req, resp, "compra");
     }

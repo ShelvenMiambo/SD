@@ -16,6 +16,7 @@ import mz.agrogest.model.Campanha;
 import mz.agrogest.model.Cultivo;
 import mz.agrogest.service.AgricolaService;
 import mz.agrogest.servlet.BaseServlet;
+import mz.agrogest.util.Opcoes;
 import mz.agrogest.util.Parametros;
 
 /** Registar e remover cultivos por campanha. */
@@ -40,6 +41,9 @@ public class CultivosServlet extends BaseServlet {
         req.setAttribute("campanhasPorId", agricola.campanhas().stream()
                 .collect(Collectors.toMap(Campanha::getId, Function.identity())));
         req.setAttribute("campanhaId", campanhaId);
+        req.setAttribute("culturas", Opcoes.getCulturas());
+        req.setAttribute("variedadesJson", Opcoes.variedadesJson());
+        req.setAttribute("outra", Opcoes.OUTRA);
         req.setAttribute("valorColhido", valorColhido);
         req.setAttribute("nColheitas", nColheitas);
         render(req, resp, "admin/cultivos");
@@ -54,7 +58,8 @@ public class CultivosServlet extends BaseServlet {
             case "criar" -> {
                 Cultivo c = agricola.criarCultivo(
                         Parametros.inteiro(req, "campanhaId", "campanha"),
-                        Parametros.obrigatorio(req, "cultura", "cultura"),
+                        Parametros.texto(req, "cultura"),
+                        Parametros.texto(req, "culturaOutra"),
                         Parametros.texto(req, "variedade"),
                         Parametros.decimal(req, "hectares", "hectares"),
                         Parametros.data(req, "dataPlantio", "data de plantio"));

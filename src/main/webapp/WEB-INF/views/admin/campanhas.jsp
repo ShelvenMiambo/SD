@@ -2,6 +2,7 @@
 <c:set var="titulo" value="Campanhas"/>
 <c:set var="menu" value="campanhas"/>
 <%@ include file="/WEB-INF/views/_header.jspf" %>
+<c:set var="editar" value="${not empty campanha}"/>
 
 <div class="cabecalho-pagina">
     <div>
@@ -29,13 +30,14 @@
                     <td class="num"><a href="${ctx}/admin/cultivos?campanhaId=${c.id}">${n}</a></td>
                     <td>
                         <div class="acoes">
-                            <form method="post" action="${ctx}/admin/campanhas" class="form-inline">
+                            <a class="btn secundario pequeno" href="${ctx}/admin/campanhas?editar=${c.id}"><svg class="ic"><use href="#i-lapis"/></svg> Editar</a>
+                            <form method="post" action="${ctx}/admin/campanhas" class="form-inline"><input type="hidden" name="_csrf" value="${csrf}">
                                 <input type="hidden" name="acao" value="${c.fechada ? 'reabrir' : 'fechar'}">
                                 <input type="hidden" name="id" value="${c.id}">
                                 <button type="submit" class="btn secundario pequeno">${c.fechada ? 'Reabrir' : 'Fechar'}</button>
                             </form>
                             <form method="post" action="${ctx}/admin/campanhas" class="form-inline"
-                                  onsubmit="return confirm('Remover esta campanha?')">
+                                  onsubmit="return confirm('Remover esta campanha?')"><input type="hidden" name="_csrf" value="${csrf}">
                                 <input type="hidden" name="acao" value="remover">
                                 <input type="hidden" name="id" value="${c.id}">
                                 <button type="submit" class="btn perigo pequeno" ${n > 0 ? 'title="Tem cultivos associados"' : ''}><svg class="ic"><use href="#i-lixo"/></svg> Remover</button>
@@ -52,15 +54,20 @@
     </section>
 
     <aside class="cartao">
-        <h2>Nova campanha</h2>
-        <form method="post" action="${ctx}/admin/campanhas" class="form">
-            <input type="hidden" name="acao" value="criar">
-            <label>Nome <input type="text" name="nome" required maxlength="100" placeholder="Campanha 2026/2027"></label>
+        <h2>${editar ? 'Editar campanha' : 'Nova campanha'}</h2>
+        <form method="post" action="${ctx}/admin/campanhas" class="form"><input type="hidden" name="_csrf" value="${csrf}">
+            <input type="hidden" name="acao" value="${editar ? 'atualizar' : 'criar'}">
+            <c:if test="${editar}"><input type="hidden" name="id" value="${campanha.id}"></c:if>
+            <label>Nome <input type="text" name="nome" required maxlength="100" placeholder="Campanha 2026/2027" value="<c:out value='${campanha.nome}'/>"></label>
             <div class="form-linha">
-                <label>Início <input type="date" name="inicio" required></label>
-                <label>Fim <input type="date" name="fim" required></label>
+                <label>Início <input type="date" name="inicio" required value="${ag:iso(campanha.inicio)}"></label>
+                <label>Fim <input type="date" name="fim" required value="${ag:iso(campanha.fim)}"></label>
             </div>
-            <button type="submit" class="btn"><svg class="ic"><use href="#i-mais"/></svg> Criar campanha</button>
+            <span class="ajuda">O fim tem de ser depois do início; no máximo 24 meses. Os cultivos já registados têm de ficar dentro das datas.</span>
+            <div class="acoes">
+                <button type="submit" class="btn"><svg class="ic"><use href="#i-${editar ? 'guardar' : 'mais'}"/></svg> ${editar ? 'Guardar alterações' : 'Criar campanha'}</button>
+                <c:if test="${editar}"><a class="btn secundario" href="${ctx}/admin/campanhas">Cancelar</a></c:if>
+            </div>
         </form>
     </aside>
 </div>

@@ -21,7 +21,13 @@
     </c:when>
     <c:otherwise>
         <c:if test="${not stockOk}">
-            <div class="alerta aviso">Alguns produtos já não têm stock suficiente. Ajuste as quantidades assinaladas antes de finalizar.</div>
+            <div class="alerta aviso">
+                <svg class="ic"><use href="#i-aviso"/></svg>
+                <span>Alguns produtos já não têm stock suficiente ou estão fora de validade. Ajuste as linhas assinaladas antes de finalizar.</span>
+            </div>
+            <form method="post" action="${ctx}/carrinho/ajustar" style="margin:-.4rem 0 1.1rem"><input type="hidden" name="_csrf" value="${csrf}">
+                <button type="submit" class="btn secundario pequeno"><svg class="ic"><use href="#i-visto"/></svg> Ajustar ao stock disponível</button>
+            </form>
         </c:if>
         <div class="grelha-2">
             <div class="cartao tabela-wrap">
@@ -40,20 +46,23 @@
                         <tr>
                             <td>
                                 <strong><c:out value="${l.produto.nome}"/></strong><br>
-                                <span class="pequeno texto-suave">Disponível: ${l.produto.quantidade} <c:out value="${l.produto.unidade}"/></span>
+                                <span class="pequeno texto-suave">Disponível: ${l.produto.quantidade} <c:out value="${l.produto.unidade}"/> · 0 remove a linha</span>
                                 <c:if test="${not l.stockSuficiente}"><br><span class="tag alerta-stock">stock insuficiente</span></c:if>
+                                <c:if test="${ag:expirado(l.produto.validade)}"><br><span class="tag alerta-stock">fora de validade</span></c:if>
                             </td>
                             <td class="num">${ag:mt(l.produto.preco)}</td>
                             <td>
-                                <form method="post" action="${ctx}/carrinho/atualizar" class="form-inline">
+                                <form method="post" action="${ctx}/carrinho/atualizar" class="form-inline"><input type="hidden" name="_csrf" value="${csrf}">
                                     <input type="hidden" name="produtoId" value="${l.produto.id}">
-                                    <input type="number" name="quantidade" value="${l.quantidade}" min="0" aria-label="Quantidade">
+                                    <c:set var="maxLinha" value="${l.produto.quantidade < maximoLinha ? l.produto.quantidade : maximoLinha}"/>
+                                    <input type="number" name="quantidade" value="${l.quantidade}" min="0" max="${maxLinha}" step="1" required
+                                           aria-label="Quantidade (máximo ${maxLinha}; 0 remove)" title="Máximo ${maxLinha} · 0 remove a linha">
                                     <button type="submit" class="btn secundario pequeno"><svg class="ic"><use href="#i-visto"/></svg> Atualizar</button>
                                 </form>
                             </td>
                             <td class="num">${ag:mt(l.subtotal)}</td>
                             <td>
-                                <form method="post" action="${ctx}/carrinho/remover" class="form-inline">
+                                <form method="post" action="${ctx}/carrinho/remover" class="form-inline"><input type="hidden" name="_csrf" value="${csrf}">
                                     <input type="hidden" name="produtoId" value="${l.produto.id}">
                                     <button type="submit" class="btn perigo pequeno"><svg class="ic"><use href="#i-lixo"/></svg> Remover</button>
                                 </form>
@@ -63,7 +72,7 @@
                     </tbody>
                 </table>
                 <form method="post" action="${ctx}/carrinho/esvaziar" style="margin-top:1rem"
-                      onsubmit="return confirm('Esvaziar o carrinho?')">
+                      onsubmit="return confirm('Esvaziar o carrinho?')"><input type="hidden" name="_csrf" value="${csrf}">
                     <button type="submit" class="btn perigo pequeno">Esvaziar carrinho</button>
                 </form>
             </div>

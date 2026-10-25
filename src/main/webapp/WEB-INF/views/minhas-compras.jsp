@@ -33,7 +33,7 @@
                 <tbody>
                 <c:forEach var="v" items="${vendas}">
                     <tr>
-                        <td><strong><c:out value="${v.numeroFactura}"/></strong></td>
+                        <td><strong><c:out value="${v.numeroFactura}"/></strong><c:if test="${v.anulada}"> <span class="tag anulada">Anulada</span></c:if></td>
                         <td>${ag:dataHora(v.data)}</td>
                         <td>
                             <c:forEach var="i" items="${v.itens}" varStatus="st">

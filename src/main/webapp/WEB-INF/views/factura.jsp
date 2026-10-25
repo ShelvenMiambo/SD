@@ -13,6 +13,9 @@
     </div>
 
     <article class="cartao">
+        <c:if test="${venda.anulada}">
+            <div class="carimbo-anulada">Anulada em ${ag:dataHora(venda.dataAnulacao)}</div>
+        </c:if>
         <div class="factura-cab">
             <div>
                 <span class="marca">

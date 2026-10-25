@@ -8,7 +8,7 @@
     <div>
         <div class="sobretitulo">Administração</div>
         <h1>Listagens</h1>
-        <p>${fn:length(lista)} registo(s). Clique num cabeçalho para ordenar.</p>
+        <p>${pagina.totalItens} registo(s). Clique num cabeçalho para ordenar.</p>
     </div>
 </div>
 
@@ -89,7 +89,7 @@
                         <td>${ag:dataHora(cl.dataRegisto)}</td>
                         <td><span class="tag ${cl.ativo ? 'ativo' : 'inativo'}">${cl.ativo ? 'Ativo' : 'Inativo'}</span></td>
                         <td>
-                            <form method="post" action="${ctx}/admin/listagens" class="form-inline">
+                            <form method="post" action="${ctx}/admin/listagens" class="form-inline"><input type="hidden" name="_csrf" value="${csrf}">
                                 <input type="hidden" name="id" value="${cl.id}">
                                 <button type="submit" class="btn ${cl.ativo ? 'perigo' : 'secundario'} pequeno">${cl.ativo ? 'Desativar' : 'Ativar'}</button>
                             </form>
@@ -113,7 +113,7 @@
                 <tbody>
                 <c:forEach var="v" items="${lista}">
                     <tr>
-                        <td><c:out value="${v.numeroFactura}"/></td>
+                        <td><c:out value="${v.numeroFactura}"/><c:if test="${v.anulada}"> <span class="tag anulada">Anulada</span></c:if></td>
                         <td>${ag:dataHora(v.data)}</td>
                         <td><c:out value="${v.clienteNome}"/></td>
                         <td class="num">${fn:length(v.itens)}</td>
@@ -127,6 +127,7 @@
         </c:otherwise>
     </c:choose>
     <c:if test="${empty lista}"><p class="vazio">Sem registos.</p></c:if>
+    <t:paginacao pagina="${pagina}" base="${base}ordem=${ordem}&amp;dir=${desc ? 'desc' : 'asc'}&amp;"/>
 </section>
 
 <%@ include file="/WEB-INF/views/_footer.jspf" %>

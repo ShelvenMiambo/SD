@@ -7,7 +7,10 @@ import java.time.format.DateTimeParseException;
 import jakarta.servlet.http.HttpServletRequest;
 import mz.agrogest.service.NegocioException;
 
-/** Leitura e validação dos parâmetros dos formulários. Erros viram {@link NegocioException}. */
+/**
+ * Leitura e validação dos parâmetros dos formulários.
+ * Os erros viram {@link NegocioException} com o nome do campo, para a vista o assinalar.
+ */
 public final class Parametros {
 
     private Parametros() {
@@ -21,17 +24,20 @@ public final class Parametros {
     public static String obrigatorio(HttpServletRequest req, String nome, String rotulo) {
         String v = texto(req, nome);
         if (v.isEmpty()) {
-            throw new NegocioException("O campo \"" + rotulo + "\" é obrigatório.");
+            throw new NegocioException("O campo \"" + rotulo + "\" é obrigatório.", nome);
         }
         return v;
     }
 
     public static int inteiro(HttpServletRequest req, String nome, String rotulo) {
-        String v = obrigatorio(req, nome, rotulo);
+        String v = obrigatorio(req, nome, rotulo).replace(" ", "");
+        if (!v.matches("-?\\d+")) {
+            throw new NegocioException("O campo \"" + rotulo + "\" deve ser um número inteiro (sem casas decimais).", nome);
+        }
         try {
             return Integer.parseInt(v);
         } catch (NumberFormatException e) {
-            throw new NegocioException("O campo \"" + rotulo + "\" deve ser um número inteiro.");
+            throw new NegocioException("O valor de \"" + rotulo + "\" é demasiado grande.", nome);
         }
     }
 
@@ -50,7 +56,7 @@ public final class Parametros {
         try {
             return new BigDecimal(v);
         } catch (NumberFormatException e) {
-            throw new NegocioException("O campo \"" + rotulo + "\" deve ser um número.");
+            throw new NegocioException("O campo \"" + rotulo + "\" deve ser um número.", nome);
         }
     }
 
@@ -59,7 +65,7 @@ public final class Parametros {
         try {
             return LocalDate.parse(v);
         } catch (DateTimeParseException e) {
-            throw new NegocioException("O campo \"" + rotulo + "\" tem uma data inválida.");
+            throw new NegocioException("O campo \"" + rotulo + "\" tem uma data inválida.", nome);
         }
     }
 
@@ -72,7 +78,7 @@ public final class Parametros {
         try {
             return Enum.valueOf(tipo, v);
         } catch (IllegalArgumentException e) {
-            throw new NegocioException("Valor inválido para \"" + rotulo + "\".");
+            throw new NegocioException("Valor inválido para \"" + rotulo + "\".", nome);
         }
     }
 }

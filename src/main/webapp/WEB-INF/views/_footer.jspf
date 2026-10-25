@@ -36,6 +36,7 @@
         <a href="${ctx}/catalogo" class="${menu == 'catalogo' ? 'ativo' : ''}"><svg class="ic"><use href="#i-loja"/></svg>Catálogo</a>
         <a href="${ctx}/carrinho" class="${menu == 'carrinho' ? 'ativo' : ''}"><svg class="ic"><use href="#i-carrinho"/></svg>Carrinho<c:if test="${nCarrinho > 0}"><span class="contador">${nCarrinho}</span></c:if></a>
         <a href="${ctx}/minhas-compras" class="${menu == 'compras' ? 'ativo' : ''}"><svg class="ic"><use href="#i-recibo"/></svg>Compras</a>
+        <a href="${ctx}/perfil" class="${menu == 'perfil' ? 'ativo' : ''}"><svg class="ic"><use href="#i-utilizador"/></svg>Perfil</a>
     </nav>
 </c:if>
 

@@ -8,7 +8,7 @@
     <div>
         <div class="sobretitulo">Administração</div>
         <h1>Compras detalhadas</h1>
-        <p>${fn:length(vendas)} compra(s) · facturação total ${ag:mt(faturacao)}</p>
+        <p>${pagina.totalItens} compra(s) · facturação total ${ag:mt(faturacao)} (sem as anuladas)</p>
     </div>
     <div class="acoes">
         <span class="texto-suave pequeno">Ordenar por:</span>
@@ -19,12 +19,21 @@
 </div>
 
 <c:forEach var="v" items="${vendas}">
-    <article class="compra-detalhe">
+    <article class="compra-detalhe ${v.anulada ? 'anulada' : ''}">
         <header>
-            <div><strong><c:out value="${v.numeroFactura}"/></strong> · ${ag:dataHora(v.data)}</div>
+            <div><strong><c:out value="${v.numeroFactura}"/></strong> · ${ag:dataHora(v.data)}
+                <c:if test="${v.anulada}"> <span class="tag anulada">Anulada ${ag:dataHora(v.dataAnulacao)}</span></c:if></div>
             <div class="acoes">
                 <strong>${ag:mt(v.total)}</strong>
                 <a class="btn secundario pequeno" href="${ctx}/factura?id=${v.id}">Factura</a>
+                <c:if test="${not v.anulada}">
+                    <form method="post" action="${ctx}/admin/compras" class="form-inline"
+                          onsubmit="return confirm('Anular a factura ${v.numeroFactura}? As quantidades voltam ao stock.')"><input type="hidden" name="_csrf" value="${csrf}">
+                        <input type="hidden" name="acao" value="anular">
+                        <input type="hidden" name="id" value="${v.id}">
+                        <button type="submit" class="btn perigo pequeno">Anular</button>
+                    </form>
+                </c:if>
             </div>
         </header>
         <div class="cliente">
@@ -56,5 +65,7 @@
     </article>
 </c:forEach>
 <c:if test="${empty vendas}"><div class="cartao vazio">Ainda não há compras.</div></c:if>
+<c:url var="basePag" value="/admin/compras"><c:param name="ordem" value="${ordem}"/><c:param name="dir" value="${desc ? 'desc' : 'asc'}"/></c:url>
+<t:paginacao pagina="${pagina}" base="${fn:substringAfter(basePag, ctx)}&amp;"/>
 
 <%@ include file="/WEB-INF/views/_footer.jspf" %>

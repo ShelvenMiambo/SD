@@ -21,7 +21,7 @@ public class MinhasComprasServlet extends BaseServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Venda> lista = vendas.vendasDoCliente(utilizador(req).getId());
         req.setAttribute("vendas", lista);
-        req.setAttribute("totalGasto", lista.stream().map(Venda::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add));
+        req.setAttribute("totalGasto", lista.stream().filter(v -> !v.isAnulada()).map(Venda::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add));
         render(req, resp, "minhas-compras");
     }
 }

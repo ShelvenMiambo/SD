@@ -14,6 +14,7 @@ public class Utilizador implements Serializable {
     private boolean ativo = true;
     private String telefone;
     private String endereco;
+    private String provincia;
     private LocalDateTime dataRegisto;
 
     public Utilizador() {
@@ -50,6 +51,16 @@ public class Utilizador implements Serializable {
     public String getTelefone() { return telefone; }
     public void setTelefone(String telefone) { this.telefone = telefone; }
     public String getEndereco() { return endereco; }
+    public String getProvincia() { return provincia; }
+    public void setProvincia(String provincia) { this.provincia = provincia; }
+
+    /** Endereço com a província, como aparece na factura. */
+    public String getEnderecoCompleto() {
+        if (provincia == null || provincia.isBlank()) {
+            return endereco;
+        }
+        return endereco == null || endereco.isBlank() ? provincia : endereco + ", " + provincia;
+    }
     public void setEndereco(String endereco) { this.endereco = endereco; }
     public LocalDateTime getDataRegisto() { return dataRegisto; }
     public void setDataRegisto(LocalDateTime dataRegisto) { this.dataRegisto = dataRegisto; }

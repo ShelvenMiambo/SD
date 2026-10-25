@@ -12,7 +12,7 @@
 </div>
 
 <c:if test="${not stockOk}">
-    <div class="alerta erro">Há produtos sem stock suficiente. <a href="${ctx}/carrinho">Volte ao carrinho</a> para ajustar as quantidades.</div>
+    <div class="alerta erro">Há produtos sem stock suficiente ou fora de validade. <a href="${ctx}/carrinho">Volte ao carrinho</a> para ajustar as quantidades.</div>
 </c:if>
 
 <div class="grelha-2">
@@ -56,8 +56,8 @@
                 <dt>IVA (16%)</dt><dd>${ag:mt(iva)}</dd>
                 <dt class="total">Total</dt><dd class="total">${ag:mt(total)}</dd>
             </dl>
-            <form method="post" action="${ctx}/compra">
-                <button type="submit" class="btn bloco grande" ${stockOk ? '' : 'disabled'}>Confirmar e emitir factura</button>
+            <form method="post" action="${ctx}/compra"><input type="hidden" name="_csrf" value="${csrf}">
+                <button type="submit" class="btn bloco grande" data-a-processar ${stockOk ? '' : 'disabled'}>Confirmar e emitir factura</button>
             </form>
             <p style="margin-top:.6rem"><a href="${ctx}/carrinho">Voltar ao carrinho</a></p>
         </div>

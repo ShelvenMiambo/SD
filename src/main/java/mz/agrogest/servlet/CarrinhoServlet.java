@@ -2,6 +2,8 @@ package mz.agrogest.servlet;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
@@ -12,11 +14,12 @@ import mz.agrogest.model.Carrinho;
 import mz.agrogest.model.LinhaCarrinho;
 import mz.agrogest.service.CatalogoService;
 import mz.agrogest.service.VendaService;
+import mz.agrogest.util.Formatos;
 import mz.agrogest.util.Parametros;
 
 /**
  * Carrinho em sessão.
- * GET /carrinho mostra; POST /carrinho/adicionar | atualizar | remover | esvaziar altera.
+ * GET /carrinho mostra; POST /carrinho/adicionar | atualizar | remover | esvaziar | ajustar altera.
  */
 @WebServlet(urlPatterns = {"/carrinho", "/carrinho/*"})
 public class CarrinhoServlet extends BaseServlet {
@@ -33,8 +36,14 @@ public class CarrinhoServlet extends BaseServlet {
         req.setAttribute("subtotal", subtotal);
         req.setAttribute("iva", iva);
         req.setAttribute("total", subtotal.add(iva));
-        req.setAttribute("stockOk", linhas.stream().allMatch(LinhaCarrinho::isStockSuficiente));
+        req.setAttribute("stockOk", linhasValidas(linhas));
+        req.setAttribute("maximoLinha", VendaService.MAXIMO_POR_LINHA);
         render(req, resp, "carrinho");
+    }
+
+    /** Todas as linhas têm stock e estão dentro da validade. */
+    static boolean linhasValidas(List<LinhaCarrinho> linhas) {
+        return linhas.stream().allMatch(l -> l.isStockSuficiente() && !Formatos.expirado(l.getProduto().getValidade()));
     }
 
     @Override
@@ -43,10 +52,18 @@ public class CarrinhoServlet extends BaseServlet {
         Carrinho carrinho = carrinho(req);
         switch (acao) {
             case "/adicionar" -> {
-                // Volta ao catálogo, mantendo o filtro de categoria escolhido.
+                // Volta ao catálogo, mantendo o filtro de categoria e a pesquisa.
                 String categoria = Parametros.texto(req, "categoria");
-                String destino = categoria.matches("[A-Z]+") ? "/catalogo?categoria=" + categoria : "/catalogo";
-                executar(req, resp, destino, () -> {
+                String q = Parametros.texto(req, "q");
+                StringBuilder destino = new StringBuilder("/catalogo?");
+                if (categoria.matches("[A-Z]+")) {
+                    destino.append("categoria=").append(categoria).append("&");
+                }
+                if (!q.isEmpty()) {
+                    destino.append("q=").append(URLEncoder.encode(q, StandardCharsets.UTF_8)).append("&");
+                }
+                destino.append("#p").append(Parametros.inteiroOuPadrao(req, "produtoId", 0));
+                executar(req, resp, destino.toString(), () -> {
                     int id = Parametros.inteiro(req, "produtoId", "produto");
                     int qtd = Parametros.inteiro(req, "quantidade", "quantidade");
                     vendas.adicionarAoCarrinho(carrinho, id, qtd);
@@ -67,6 +84,11 @@ public class CarrinhoServlet extends BaseServlet {
             case "/esvaziar" -> executar(req, resp, "/carrinho", () -> {
                 carrinho.esvaziar();
                 return "Carrinho esvaziado.";
+            });
+            case "/ajustar" -> executar(req, resp, "/carrinho", () -> {
+                int n = vendas.ajustarAoStock(carrinho);
+                return n == 0 ? "O carrinho já estava de acordo com o stock."
+                        : n + " linha(s) ajustada(s) ao stock disponível.";
             });
             default -> naoEncontrado(resp);
         }

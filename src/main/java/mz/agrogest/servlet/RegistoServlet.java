@@ -10,6 +10,7 @@ import mz.agrogest.model.Utilizador;
 import mz.agrogest.service.NegocioException;
 import mz.agrogest.service.UtilizadorService;
 import mz.agrogest.util.Flash;
+import mz.agrogest.util.Opcoes;
 import mz.agrogest.util.Parametros;
 
 /** Auto-registo de clientes. */
@@ -20,6 +21,7 @@ public class RegistoServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setAttribute("provincias", Opcoes.PROVINCIAS);
         render(req, resp, "registo");
     }
 
@@ -29,19 +31,22 @@ public class RegistoServlet extends BaseServlet {
         String confirmacao = req.getParameter("confirmacao");
         try {
             if (password == null || !password.equals(confirmacao)) {
-                throw new NegocioException("As palavras-passe não coincidem.");
+                throw new NegocioException("As palavras-passe não coincidem.", "confirmacao");
             }
             Utilizador u = utilizadores.registarCliente(
                     Parametros.texto(req, "nome"),
                     Parametros.texto(req, "email"),
                     password,
                     Parametros.texto(req, "telefone"),
+                    Parametros.texto(req, "provincia"),
                     Parametros.texto(req, "endereco"));
             LoginServlet.iniciarSessao(req, u);
             Flash.ok(req, "Bem-vindo(a), " + u.getNome() + "! A sua conta foi criada.");
             redirect(req, resp, "/catalogo");
         } catch (NegocioException e) {
             req.setAttribute("erro", e.getMessage());
+            req.setAttribute(ATTR_ERRO_CAMPO, e.getCampo());
+            req.setAttribute("provincias", Opcoes.PROVINCIAS);
             render(req, resp, "registo");
         }
     }

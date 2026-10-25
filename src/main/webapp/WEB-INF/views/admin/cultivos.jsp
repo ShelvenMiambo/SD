@@ -39,7 +39,7 @@
                     <td class="num">${ag:mt(valorColhido[cv.id])}</td>
                     <td>
                         <form method="post" action="${ctx}/admin/cultivos" class="form-inline"
-                              onsubmit="return confirm('Remover este cultivo?')">
+                              onsubmit="return confirm('Remover este cultivo?')"><input type="hidden" name="_csrf" value="${csrf}">
                             <input type="hidden" name="acao" value="remover">
                             <input type="hidden" name="id" value="${cv.id}">
                             <input type="hidden" name="filtroCampanha" value="${campanhaId}">
@@ -57,26 +57,41 @@
 
     <aside class="cartao">
         <h2>Registar cultivo</h2>
-        <form method="post" action="${ctx}/admin/cultivos" class="form">
+        <form method="post" action="${ctx}/admin/cultivos" class="form"><input type="hidden" name="_csrf" value="${csrf}">
             <input type="hidden" name="acao" value="criar">
             <input type="hidden" name="filtroCampanha" value="${campanhaId}">
             <label>Campanha
                 <select name="campanhaId" required>
                     <c:forEach var="c" items="${campanhas}">
                         <c:if test="${not c.fechada}">
-                            <option value="${c.id}" ${c.id == campanhaId ? 'selected' : ''}><c:out value="${c.nome}"/></option>
+                            <option value="${c.id}" ${c.id == campanhaId ? 'selected' : ''}><c:out value="${c.nome}"/> (${ag:data(c.inicio)} a ${ag:data(c.fim)})</option>
                         </c:if>
                     </c:forEach>
                 </select>
             </label>
             <div class="form-linha">
-                <label>Cultura <input type="text" name="cultura" required maxlength="60" placeholder="Feijão nhemba"></label>
-                <label>Variedade <input type="text" name="variedade" maxlength="60" placeholder="Macia"></label>
+                <label>Cultura
+                    <select name="cultura" required data-variedades="${fn:escapeXml(variedadesJson)}">
+                        <option value="">Escolha…</option>
+                        <c:forEach var="cu" items="${culturas}">
+                            <option value="${cu}">${cu}</option>
+                        </c:forEach>
+                        <option value="${outra}">Outra…</option>
+                    </select>
+                </label>
+                <label>Variedade
+                    <input type="text" name="variedade" maxlength="60" list="lista-variedades" placeholder="Escolha ou escreva">
+                    <datalist id="lista-variedades"></datalist>
+                </label>
             </div>
+            <label data-cultura-outra hidden>Nome da cultura
+                <input type="text" name="culturaOutra" maxlength="60" placeholder="Ex.: Pimento">
+            </label>
             <div class="form-linha">
-                <label>Hectares <input type="number" name="hectares" required min="0.01" step="0.01"></label>
+                <label>Hectares <input type="number" name="hectares" required min="0.01" max="100000" step="0.01"></label>
                 <label>Data de plantio <input type="date" name="dataPlantio" required></label>
             </div>
+            <span class="ajuda">A data de plantio tem de estar dentro das datas da campanha escolhida.</span>
             <button type="submit" class="btn"><svg class="ic"><use href="#i-mais"/></svg> Registar cultivo</button>
             <p class="pequeno texto-suave">Só aparecem campanhas abertas.</p>
         </form>

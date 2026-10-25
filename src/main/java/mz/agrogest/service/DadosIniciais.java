@@ -39,7 +39,7 @@ public final class DadosIniciais {
 
         Fornecedor f1 = cs.criarFornecedor("AgroSementes Nampula", TipoFornecedor.SEMENTES, "+258 84 123 4567", "Nampula");
         Fornecedor f2 = cs.criarFornecedor("FertiMoz, Lda", TipoFornecedor.FERTILIZANTES, "+258 82 765 4321", "Sofala");
-        Fornecedor f3 = cs.criarFornecedor("MecAgro Comercial", TipoFornecedor.FERRAMENTAS, "+258 87 555 0101", "Maputo");
+        Fornecedor f3 = cs.criarFornecedor("MecAgro Comercial", TipoFornecedor.FERRAMENTAS, "+258 87 555 0101", "Maputo Cidade");
 
         Produto milho = cs.criarProduto(produto("Semente de Milho", Categoria.SEMENTE, f1, "85", 500, "kg",
                 "Milho branco de polinização aberta (variedade Matuba), adaptado ao clima de Nampula.",
@@ -50,11 +50,11 @@ public final class DadosIniciais {
         Produto enxada = cs.criarProduto(produto("Enxada de cabo longo", Categoria.FERRAMENTA, f3, "450", 60, "unidade",
                 "Enxada de aço forjado com cabo de madeira de 1,2 m.", null, "/img/produtos/enxada.jpg"));
 
-        Utilizador ana = us.registarCliente("Ana Mussa", "ana@teste.mz", CLIENTE_PASSWORD, "+258 84 111 2233", "Bairro Muahivire, Nampula");
-        Utilizador carlos = us.registarCliente("Carlos Nhantumbo", "carlos@teste.mz", CLIENTE_PASSWORD, "+258 82 222 3344", "Av. de Moçambique, Maputo");
-        Utilizador fatima = us.registarCliente("Fátima Abdala", "fatima@teste.mz", CLIENTE_PASSWORD, "+258 86 333 4455", "Rua dos Continuadores, Nacala");
-        us.registarCliente("Pedro Cossa", "pedro@teste.mz", CLIENTE_PASSWORD, "+258 84 444 5566", "Bairro Namutequeliua, Nampula");
-        us.registarCliente("Rosa Langa", "rosa@teste.mz", CLIENTE_PASSWORD, "+258 87 555 6677", "Av. Eduardo Mondlane, Beira");
+        Utilizador ana = us.registarCliente("Ana Mussa", "ana@teste.mz", CLIENTE_PASSWORD, "+258 84 111 2233", "Nampula", "Bairro Muahivire, Rua 4");
+        Utilizador carlos = us.registarCliente("Carlos Nhantumbo", "carlos@teste.mz", CLIENTE_PASSWORD, "+258 82 222 3344", "Maputo Cidade", "Av. de Moçambique, 1520");
+        Utilizador fatima = us.registarCliente("Fátima Abdala", "fatima@teste.mz", CLIENTE_PASSWORD, "+258 86 333 4455", "Nampula", "Rua dos Continuadores, Nacala");
+        us.registarCliente("Pedro Cossa", "pedro@teste.mz", CLIENTE_PASSWORD, "+258 84 444 5566", "Nampula", "Bairro Namutequeliua");
+        us.registarCliente("Rosa Langa", "rosa@teste.mz", CLIENTE_PASSWORD, "+258 87 555 6677", "Sofala", "Av. Eduardo Mondlane, Beira");
 
         vs.registarVenda(ana, itens(milho, 20, adubo, 2), LocalDateTime.of(2025, 10, 14, 9, 30));
         vs.registarVenda(carlos, itens(enxada, 3), LocalDateTime.of(2025, 11, 2, 15, 10));
@@ -62,7 +62,7 @@ public final class DadosIniciais {
         vs.registarVenda(fatima, itens(milho, 50), LocalDateTime.of(2025, 12, 5, 8, 0));
 
         Campanha c = as.criarCampanha("Campanha 2025/2026", LocalDate.of(2025, 10, 1), LocalDate.of(2026, 6, 30));
-        Cultivo cv = as.criarCultivo(c.getId(), "Milho", "Matuba", new BigDecimal("5"), LocalDate.of(2025, 11, 10));
+        Cultivo cv = as.criarCultivo(c.getId(), "Milho", null, "Matuba", new BigDecimal("5"), LocalDate.of(2025, 11, 10));
         as.criarColheita(cv.getId(), LocalDate.of(2026, 4, 15), new BigDecimal("12000"), new BigDecimal("18"));
     }
 

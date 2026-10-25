@@ -53,7 +53,7 @@
                     <tbody>
                     <c:forEach var="v" items="${ultimasVendas}">
                         <tr>
-                            <td><a href="${ctx}/factura?id=${v.id}"><strong><c:out value="${v.numeroFactura}"/></strong></a></td>
+                            <td><a href="${ctx}/factura?id=${v.id}"><strong><c:out value="${v.numeroFactura}"/></strong></a><c:if test="${v.anulada}"> <span class="tag anulada">Anulada</span></c:if></td>
                             <td><c:out value="${v.clienteNome}"/></td>
                             <td class="texto-suave">${ag:dataHora(v.data)}</td>
                             <td class="num"><strong>${ag:mt(v.total)}</strong></td>
@@ -84,6 +84,26 @@
                     </tbody>
                 </table>
                 <a class="btn secundario pequeno" style="margin-top:.9rem" href="${ctx}/admin/produtos">Repor stock</a>
+            </c:otherwise>
+        </c:choose>
+
+        <h2 style="margin-top:1.6rem"><svg class="ic"><use href="#i-calendario"/></svg> Validade</h2>
+        <p class="texto-suave pequeno">Produtos fora de validade ou a expirar nos próximos ${diasValidade} dias. Os expirados não podem ser vendidos.</p>
+        <c:choose>
+            <c:when test="${empty aExpirar}">
+                <div class="alerta ok"><svg class="ic"><use href="#i-visto"/></svg><span>Nenhum produto a expirar.</span></div>
+            </c:when>
+            <c:otherwise>
+                <table>
+                    <tbody>
+                    <c:forEach var="p" items="${aExpirar}">
+                        <tr>
+                            <td><c:out value="${p.nome}"/></td>
+                            <td class="num"><span class="tag ${ag:expirado(p.validade) ? 'alerta-stock' : 'fechada'}">${ag:expirado(p.validade) ? 'expirou ' : ''}${ag:data(p.validade)}</span></td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
             </c:otherwise>
         </c:choose>
     </aside>

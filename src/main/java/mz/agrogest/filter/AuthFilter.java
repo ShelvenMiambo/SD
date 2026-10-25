@@ -22,7 +22,7 @@ import mz.agrogest.service.UtilizadorService;
  * </ul>
  */
 @WebFilter(urlPatterns = {
-        "/catalogo", "/carrinho", "/carrinho/*", "/compra", "/factura", "/minhas-compras",
+        "/catalogo", "/carrinho", "/carrinho/*", "/compra", "/factura", "/minhas-compras", "/perfil",
         "/admin", "/admin/*"
 })
 public class AuthFilter implements Filter {
@@ -55,6 +55,13 @@ public class AuthFilter implements Filter {
         boolean rotaAdmin = caminho.equals("/admin") || caminho.startsWith("/admin/");
         if (rotaAdmin && !u.isAdmin()) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso reservado ao administrador.");
+            return;
+        }
+        // Carrinho, compra, histórico e perfil são do cliente: o administrador não compra.
+        boolean rotaCliente = caminho.equals("/carrinho") || caminho.startsWith("/carrinho/")
+                || caminho.equals("/compra") || caminho.equals("/minhas-compras") || caminho.equals("/perfil");
+        if (rotaCliente && u.isAdmin()) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "O administrador não efetua compras.");
             return;
         }
 

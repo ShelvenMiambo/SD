@@ -80,7 +80,7 @@ public class RelatorioService {
 
     /** Resumo de compras de todos os clientes. */
     public List<ClienteResumo> resumos() {
-        Map<Integer, List<Venda>> porCliente = vendas.vendas().stream()
+        Map<Integer, List<Venda>> porCliente = vendas.vendasValidas().stream()
                 .collect(Collectors.groupingBy(Venda::getClienteId));
         return utilizadores.clientes().stream().map(c -> {
             List<Venda> vs = porCliente.getOrDefault(c.getId(), List.of());

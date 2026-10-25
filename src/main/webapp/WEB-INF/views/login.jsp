@@ -16,7 +16,7 @@
                 <div class="alerta erro" role="alert"><svg class="ic"><use href="#i-aviso"/></svg><span><c:out value="${erro}"/></span></div>
             </c:if>
 
-            <form method="post" action="${ctx}/login" class="form">
+            <form method="post" action="${ctx}/login" class="form"><input type="hidden" name="_csrf" value="${csrf}">
                 <label>Email
                     <span class="campo-icone">
                         <svg class="ic"><use href="#i-email"/></svg>

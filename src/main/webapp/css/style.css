@@ -369,7 +369,7 @@ body.app .grelha-2 > aside { top: 1.5rem; }
 /* ---------- Formulários ---------- */
 .form { display: grid; gap: .95rem; }
 .form-linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .95rem; }
-label { display: grid; gap: .35rem; font-size: .84rem; font-weight: 500; color: hsl(var(--tinta)); }
+label { display: grid; gap: .35rem; align-content: start; font-size: .84rem; font-weight: 500; color: hsl(var(--tinta)); }
 input, select, textarea {
     font: inherit;
     font-size: .93rem;
@@ -737,7 +737,7 @@ tfoot td { font-weight: 600; border-bottom: none; border-top: 1px solid hsl(var(
 /* ---------- Compras detalhadas ---------- */
 .compra-detalhe { border: 1px solid hsl(var(--linha)); border-radius: var(--raio); margin-bottom: 1rem; background: hsl(var(--superficie)); overflow: hidden; box-shadow: var(--sombra); }
 .compra-detalhe header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: .8rem 1.1rem; border-bottom: 1px solid hsl(var(--linha)); }
-.compra-detalhe header strong:first-child { font-family: var(--mono); font-size: .92rem; }
+.compra-detalhe header > div:first-child > strong:first-child { font-family: var(--mono); font-size: .92rem; }
 .compra-detalhe .cliente { padding: .65rem 1.1rem; font-size: .84rem; color: hsl(var(--tinta-suave)); display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; background: hsl(var(--superficie-2) / .5); border-bottom: 1px solid hsl(var(--linha)); }
 .compra-detalhe .cliente span { display: inline-flex; align-items: center; gap: .35rem; }
 .compra-detalhe table th:first-child, .compra-detalhe table td:first-child { padding-left: 1.1rem; }
@@ -764,6 +764,55 @@ body.app .rodape .container { max-width: 1280px; padding-left: 2.25rem; padding-
 
 /* ---------- Separadores inferiores (telemóvel) ---------- */
 .tabs-inferiores { display: none; }
+
+
+/* ---------- Validação, pesquisa, paginação e outros (v2) ---------- */
+[hidden] { display: none !important; }
+input.invalido, select.invalido, textarea.invalido { border-color: hsl(var(--erro)); box-shadow: 0 0 0 3px hsl(var(--erro) / .12); }
+.erro-campo { display: block; color: hsl(var(--erro)); font-size: .78rem; font-weight: 500; margin-top: .1rem; }
+.ajuda { display: block; color: hsl(var(--tinta-fraca)); font-size: .76rem; font-weight: 400; }
+.forca { display: block; font-size: .76rem; font-weight: 500; min-height: 1.1em; }
+.forca[data-nivel="fraca"] { color: hsl(var(--erro)); }
+.forca[data-nivel="media"] { color: hsl(var(--aviso)); }
+.forca[data-nivel="forte"] { color: hsl(var(--ok)); }
+
+.pesquisa { position: relative; display: flex; gap: .4rem; align-items: center; }
+.pesquisa .ic { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: hsl(var(--tinta-fraca)); pointer-events: none; }
+.pesquisa input[type="search"] { padding-left: 2.2rem; min-width: 240px; }
+.barra-filtros { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.barra-filtros .filtros { margin-bottom: 0; }
+
+.paginacao { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-top: 1rem; margin-top: .5rem; border-top: 1px solid hsl(var(--linha)); }
+
+.limite { font-size: .74rem; color: hsl(var(--tinta-fraca)); text-align: right; margin-top: -.2rem; }
+.produto.indisponivel .produto-foto img { filter: grayscale(.7); opacity: .75; }
+
+.repor { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.repor .rapido { height: 30px; padding: 0 .5rem; font-size: .76rem; }
+td.col-acoes { min-width: 232px; }
+.acoes-produto { display: grid; gap: .4rem; justify-items: start; }
+.acoes-produto .form-inline input[type=number] { width: 96px; }
+
+.tag.anulada { color: hsl(var(--erro)); background: hsl(var(--erro) / .06); border-color: hsl(var(--erro) / .2); }
+.tag.anulada::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.carimbo-anulada {
+    display: inline-block;
+    padding: .3rem .8rem;
+    border: 2px solid hsl(var(--erro));
+    color: hsl(var(--erro));
+    border-radius: 6px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+    margin-bottom: 1rem;
+}
+.compra-detalhe.anulada { opacity: .7; }
+.compra-detalhe.anulada table { text-decoration: line-through; text-decoration-color: hsl(var(--erro) / .5); }
+@media (max-width: 767px) {
+    .pesquisa input[type="search"] { min-width: 0; }
+    .pesquisa { width: 100%; }
+}
 
 /* ---------- Animações ---------- */
 @keyframes aparecer { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }

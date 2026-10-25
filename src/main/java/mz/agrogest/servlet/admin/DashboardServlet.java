@@ -18,6 +18,7 @@ import mz.agrogest.servlet.BaseServlet;
 public class DashboardServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
     private static final int STOCK_BAIXO = 20;
+    private static final int DIAS_VALIDADE = 30;
 
     private final CatalogoService catalogo = new CatalogoService();
     private final UtilizadorService utilizadores = new UtilizadorService();
@@ -29,15 +30,17 @@ public class DashboardServlet extends BaseServlet {
         req.setAttribute("nFornecedores", catalogo.fornecedores().size());
         req.setAttribute("nProdutos", catalogo.produtos().size());
         req.setAttribute("nClientes", utilizadores.clientes().size());
-        req.setAttribute("nVendas", vendas.vendas().size());
         req.setAttribute("nCampanhas", agricola.campanhas().size());
         req.setAttribute("faturacao", vendas.faturacaoTotal());
         req.setAttribute("ultimasVendas", vendas.vendas().stream().limit(5).toList());
+        req.setAttribute("nVendas", vendas.vendasValidas().size());
         req.setAttribute("stockBaixo", catalogo.produtos().stream()
                 .filter(p -> p.getQuantidade() <= STOCK_BAIXO)
                 .sorted(Comparator.comparingInt(Produto::getQuantidade))
                 .toList());
         req.setAttribute("limiteStock", STOCK_BAIXO);
+        req.setAttribute("aExpirar", catalogo.aExpirar(DIAS_VALIDADE));
+        req.setAttribute("diasValidade", DIAS_VALIDADE);
         render(req, resp, "admin/dashboard");
     }
 }

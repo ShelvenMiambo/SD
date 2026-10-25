@@ -38,7 +38,7 @@
                     <td class="num"><strong>${ag:mt(col.valorTotal)}</strong></td>
                     <td>
                         <form method="post" action="${ctx}/admin/colheitas" class="form-inline"
-                              onsubmit="return confirm('Remover esta colheita?')">
+                              onsubmit="return confirm('Remover esta colheita?')"><input type="hidden" name="_csrf" value="${csrf}">
                             <input type="hidden" name="acao" value="remover">
                             <input type="hidden" name="id" value="${col.id}">
                             <input type="hidden" name="filtroCultivo" value="${cultivoId}">
@@ -62,7 +62,7 @@
         <c:if test="${empty cultivos}">
             <div class="alerta aviso">Registe primeiro um <a href="${ctx}/admin/cultivos">cultivo</a>.</div>
         </c:if>
-        <form method="post" action="${ctx}/admin/colheitas" class="form">
+        <form method="post" action="${ctx}/admin/colheitas" class="form"><input type="hidden" name="_csrf" value="${csrf}">
             <input type="hidden" name="acao" value="criar">
             <input type="hidden" name="filtroCultivo" value="${cultivoId}">
             <label>Cultivo
@@ -74,10 +74,10 @@
             </label>
             <label>Data <input type="date" name="data" required></label>
             <div class="form-linha">
-                <label>Quantidade (kg) <input type="number" name="quantidadeKg" required min="0.01" step="0.01" placeholder="3200"></label>
-                <label>Preço por kg (MT) <input type="number" name="precoKg" required min="0.01" step="0.01" placeholder="22"></label>
+                <label>Quantidade (kg) <input type="number" name="quantidadeKg" required min="0.01" max="10000000" step="0.01" placeholder="3200"></label>
+                <label>Preço por kg (MT) <input type="number" name="precoKg" required min="0.01" max="1000000" step="0.01" placeholder="22"></label>
             </div>
-            <p class="pequeno texto-suave">O valor total (kg × preço/kg) é calculado pelo sistema.</p>
+            <p class="pequeno texto-suave">O valor total (kg × preço/kg) é calculado pelo sistema. A data tem de ser depois do plantio e até 6 meses após o fim da campanha.</p>
             <button type="submit" class="btn"><svg class="ic"><use href="#i-mais"/></svg> Registar colheita</button>
         </form>
     </aside>

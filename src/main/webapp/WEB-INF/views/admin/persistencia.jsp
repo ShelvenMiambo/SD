@@ -32,12 +32,12 @@
 
     <aside class="cartao">
         <h2>Ações</h2>
-        <form method="post" action="${ctx}/admin/persistencia" class="form">
+        <form method="post" action="${ctx}/admin/persistencia" class="form"><input type="hidden" name="_csrf" value="${csrf}">
             <input type="hidden" name="acao" value="gravar">
             <button type="submit" class="btn bloco grande">Gravar agora</button>
         </form>
         <form method="post" action="${ctx}/admin/persistencia" class="form" style="margin-top:1rem"
-              onsubmit="return confirm('Eliminar o ficheiro gravado? Os dados em memória mantêm-se, mas serão gravados de novo ao encerrar o Tomcat.')">
+              onsubmit="return confirm('Eliminar o ficheiro gravado? Os dados em memória mantêm-se, mas serão gravados de novo ao encerrar o Tomcat.')"><input type="hidden" name="_csrf" value="${csrf}">
             <input type="hidden" name="acao" value="eliminar">
             <button type="submit" class="btn perigo bloco">Eliminar ficheiro</button>
         </form>

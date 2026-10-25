@@ -8,6 +8,11 @@
 <c:set var="u" value="${sessionScope.utilizador}"/>
 <c:set var="nCarrinho" value="${empty sessionScope.carrinho ? 0 : sessionScope.carrinho.totalLinhas}"/>
 <c:set var="modoApp" value="${u.admin and layout != 'auth'}"/>
+<%-- Campo com erro e valores do formulário que falhou (guardados pelo BaseServlet), usados uma só vez --%>
+<c:set var="erroCampo" value="${not empty requestScope.erroCampo ? requestScope.erroCampo : sessionScope.erroCampo}"/>
+<c:set var="formAnterior" value="${sessionScope.formAnterior}"/>
+<c:remove var="erroCampo" scope="session"/>
+<c:remove var="formAnterior" scope="session"/>
 <!DOCTYPE html>
 <html lang="pt-MZ">
 <head>
@@ -23,7 +28,7 @@
     <link rel="icon" href="${ctx}/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="${ctx}/css/style.css">
 </head>
-<body class="${modoApp ? 'app' : ''}">
+<body class="${modoApp ? 'app' : ''}" data-erro-campo="${fn:escapeXml(erroCampo)}" data-form-anterior="${fn:escapeXml(formAnterior)}">
 <%@ include file="/WEB-INF/views/_icones.jspf" %>
 
 <c:choose>
@@ -45,6 +50,7 @@
                     <span>Catálogo</span>
                     <a href="${ctx}/admin/fornecedores" class="${menu == 'fornecedores' ? 'ativo' : ''}"><svg class="ic"><use href="#i-camiao"/></svg>Fornecedores</a>
                     <a href="${ctx}/admin/produtos" class="${menu == 'produtos' ? 'ativo' : ''}"><svg class="ic"><use href="#i-pacote"/></svg>Produtos</a>
+                    <a href="${ctx}/catalogo" class="${menu == 'catalogo-admin' ? 'ativo' : ''}"><svg class="ic"><use href="#i-loja"/></svg>Ver loja</a>
                 </div>
                 <div class="lateral-grupo">
                     <span>Produção</span>
@@ -70,7 +76,7 @@
                     <svg class="ic tema-claro"><use href="#i-lua"/></svg>
                     <svg class="ic tema-escuro"><use href="#i-sol"/></svg>
                 </button>
-                <form method="post" action="${ctx}/logout" style="margin:0">
+                <form method="post" action="${ctx}/logout" style="margin:0"><input type="hidden" name="_csrf" value="${csrf}">
                     <button type="submit" class="btn-icone" aria-label="Sair" title="Sair"><svg class="ic"><use href="#i-sair"/></svg></button>
                 </form>
             </div>
@@ -102,6 +108,7 @@
                             <a href="${ctx}/catalogo" class="${menu == 'catalogo' ? 'ativo' : ''}">Catálogo</a>
                             <a href="${ctx}/carrinho" class="${menu == 'carrinho' ? 'ativo' : ''}">Carrinho</a>
                             <a href="${ctx}/minhas-compras" class="${menu == 'compras' ? 'ativo' : ''}">Minhas compras</a>
+                            <a href="${ctx}/perfil" class="${menu == 'perfil' ? 'ativo' : ''}">Perfil</a>
                         </c:when>
                         <c:otherwise>
                             <a href="${ctx}/#como-funciona">Como funciona</a>
@@ -114,16 +121,19 @@
                         <svg class="ic tema-escuro"><use href="#i-sol"/></svg>
                     </button>
                     <c:choose>
+                        <c:when test="${not empty u and u.admin}">
+                            <a class="btn fantasma pequeno" href="${ctx}/admin">Voltar ao painel</a>
+                        </c:when>
                         <c:when test="${not empty u}">
                             <a class="btn-icone" href="${ctx}/carrinho" aria-label="Carrinho (${nCarrinho})">
                                 <svg class="ic"><use href="#i-carrinho"/></svg>
                                 <c:if test="${nCarrinho > 0}"><span class="contador">${nCarrinho}</span></c:if>
                             </a>
-                            <span class="utilizador" title="<c:out value='${u.email}'/>">
+                            <a class="utilizador" href="${ctx}/perfil" title="O meu perfil">
                                 <span class="iniciais">${fn:toUpperCase(fn:substring(u.nome, 0, 1))}</span>
                                 <span class="nome"><c:out value="${u.nome}"/></span>
-                            </span>
-                            <form method="post" action="${ctx}/logout" style="margin:0">
+                            </a>
+                            <form method="post" action="${ctx}/logout" style="margin:0"><input type="hidden" name="_csrf" value="${csrf}">
                                 <button type="submit" class="btn-icone" aria-label="Sair" title="Sair"><svg class="ic"><use href="#i-sair"/></svg></button>
                             </form>
                         </c:when>

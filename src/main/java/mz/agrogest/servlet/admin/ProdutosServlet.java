@@ -10,9 +10,10 @@ import mz.agrogest.model.Categoria;
 import mz.agrogest.model.Produto;
 import mz.agrogest.service.CatalogoService;
 import mz.agrogest.servlet.BaseServlet;
+import mz.agrogest.util.Opcoes;
 import mz.agrogest.util.Parametros;
 
-/** Criar, listar, editar, repor stock e remover produtos. */
+/** Criar, listar, pesquisar, editar, repor stock e remover produtos. */
 @WebServlet("/admin/produtos")
 public class ProdutosServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
@@ -24,29 +25,40 @@ public class ProdutosServlet extends BaseServlet {
         if (editar > 0) {
             catalogo.produto(editar).ifPresent(p -> req.setAttribute("produto", p));
         }
-        req.setAttribute("produtos", catalogo.produtosPorCategoria(null));
+        String q = Parametros.texto(req, "q");
+        req.setAttribute("q", q);
+        req.setAttribute("produtos", catalogo.pesquisar(null, q));
         req.setAttribute("fornecedores", catalogo.fornecedores());
         req.setAttribute("fornecedoresPorId", catalogo.fornecedoresPorId());
         req.setAttribute("categorias", Categoria.values());
+        req.setAttribute("unidades", Opcoes.UNIDADES);
+        req.setAttribute("stockMaximo", CatalogoService.STOCK_MAXIMO);
+        req.setAttribute("hoje", java.time.LocalDate.now());
         render(req, resp, "admin/produtos");
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String acao = Parametros.texto(req, "acao");
-        executar(req, resp, "/admin/produtos", () -> switch (acao) {
+        int id = Parametros.inteiroOuPadrao(req, "id", 0);
+        String destino = "atualizar".equals(acao) ? "/admin/produtos?editar=" + id : "/admin/produtos";
+        executar(req, resp, destino, () -> switch (acao) {
             case "criar" -> {
                 Produto p = catalogo.criarProduto(lerFormulario(req));
                 yield "Produto \"" + p.getNome() + "\" criado.";
             }
             case "atualizar" -> {
-                Produto p = catalogo.atualizarProduto(Parametros.inteiro(req, "id", "id"), lerFormulario(req));
+                Produto p = catalogo.atualizarProduto(id, lerFormulario(req));
                 yield "Produto \"" + p.getNome() + "\" atualizado.";
             }
             case "repor" -> {
-                int qtd = Parametros.inteiro(req, "quantidade", "quantidade a repor");
-                Produto p = catalogo.reporStock(Parametros.inteiro(req, "id", "id"), qtd);
-                yield "Stock de \"" + p.getNome() + "\" reposto: agora " + p.getQuantidade() + " " + p.getUnidade() + ".";
+                // Os botões rápidos (+10, +50, +100) enviam "rapido"; senão usa o campo "quantidade".
+                String rapido = Parametros.texto(req, "rapido");
+                int qtd = rapido.isEmpty()
+                        ? Parametros.inteiro(req, "quantidade", "quantidade a repor")
+                        : Parametros.inteiro(req, "rapido", "quantidade a repor");
+                Produto p = catalogo.reporStock(id, qtd);
+                yield "Stock de \"" + p.getNome() + "\" reposto (+" + qtd + "): agora " + p.getQuantidade() + " " + p.getUnidade() + ".";
             }
             case "remover" -> {
                 catalogo.removerProduto(Parametros.inteiro(req, "id", "id"));
