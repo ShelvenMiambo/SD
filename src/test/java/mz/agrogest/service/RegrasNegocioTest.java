@@ -148,6 +148,33 @@ class RegrasNegocioTest {
     }
 
     @Test
+    void duploCliqueNaoGeraDuasFacturas() throws Exception {
+        Carrinho c = new Carrinho();
+        vendas.adicionarAoCarrinho(c, milho.getId(), 2);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch partida = new CountDownLatch(1);
+        AtomicInteger sucessos = new AtomicInteger();
+        for (int i = 0; i < 2; i++) {
+            pool.submit(() -> {
+                partida.await();
+                try {
+                    vendas.finalizarCompra(joao, c);
+                    sucessos.incrementAndGet();
+                } catch (NegocioException e) {
+                    // "O carrinho está vazio." — esperado para o segundo pedido
+                }
+                return null;
+            });
+        }
+        partida.countDown();
+        pool.shutdown();
+        assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
+        assertEquals(1, sucessos.get());
+        assertEquals(1, vendas.vendas().size());
+        assertEquals(8, milho.getQuantidade());
+    }
+
+    @Test
     void produtoForaDeValidadeNaoSeVende() {
         Carrinho c = new Carrinho();
         vendas.adicionarAoCarrinho(c, milho.getId(), 1);

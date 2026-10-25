@@ -252,7 +252,7 @@ dados do cliente copiados no momento da compra e botão **Imprimir** (estilos `@
 ./mvnw test
 ```
 
-36 testes (`RegrasNegocioTest`, `ValidacaoTest` e `FormatosTest`) cobrem: compra com IVA, stock insuficiente,
+37 testes (`RegrasNegocioTest`, `ValidacaoTest` e `FormatosTest`) cobrem: compra com IVA, stock insuficiente, duplo clique na compra,
 venda atómica, compras concorrentes, produtos fora de validade, limite por linha, "ajustar ao stock", anulação de
 vendas, numeração das facturas, visibilidade das facturas, validação de nome/telefone/província, alteração de
 palavra-passe, bloqueio de login, categorias por tipo de fornecedor, nomes únicos, datas de plantio e colheita,

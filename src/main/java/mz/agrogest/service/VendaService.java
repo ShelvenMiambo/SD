@@ -125,9 +125,13 @@ public class VendaService {
      * Se qualquer item falhar, nada é alterado. O carrinho só é esvaziado em caso de sucesso.
      */
     public Venda finalizarCompra(Utilizador cliente, Carrinho carrinho) {
-        Venda v = registarVenda(cliente, carrinho.getItens(), LocalDateTime.now());
-        carrinho.esvaziar();
-        return v;
+        // Bloqueia o carrinho: dois pedidos simultâneos da mesma sessão (duplo clique) não geram
+        // duas facturas — o segundo espera e encontra o carrinho já vazio.
+        synchronized (carrinho) {
+            Venda v = registarVenda(cliente, carrinho.getItens(), LocalDateTime.now());
+            carrinho.esvaziar();
+            return v;
+        }
     }
 
     /** Núcleo transaccional da venda. Também usado para carregar os dados de exemplo. */
