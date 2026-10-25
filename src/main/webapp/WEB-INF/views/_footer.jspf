@@ -1,0 +1,44 @@
+</main>
+
+<c:if test="${layout != 'auth'}">
+<footer class="rodape">
+    <div class="container">
+        <a class="marca" href="${ctx}/"><svg><use href="#i-logo"/></svg><span class="marca-nome">Agro<em>Gest</em></span></a>
+        <nav>
+            <c:choose>
+                <c:when test="${u.admin}">
+                    <a href="${ctx}/admin">Painel</a>
+                    <a href="${ctx}/admin/relatorios">Relatórios</a>
+                    <a href="${ctx}/admin/persistencia">Persistência</a>
+                </c:when>
+                <c:when test="${not empty u}">
+                    <a href="${ctx}/catalogo">Catálogo</a>
+                    <a href="${ctx}/minhas-compras">Facturas</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${ctx}/login">Entrar</a>
+                    <a href="${ctx}/registo">Criar conta</a>
+                </c:otherwise>
+            </c:choose>
+        </nav>
+        <span>Nampula, Moçambique · © 2026</span>
+    </div>
+</footer>
+</c:if>
+
+<c:if test="${modoApp}">
+</div><%-- fecha .area --%>
+</c:if>
+
+<%-- Separadores inferiores no telemóvel (só cliente; o admin usa a gaveta lateral) --%>
+<c:if test="${not empty u and not u.admin and layout != 'auth'}">
+    <nav class="tabs-inferiores" aria-label="Navegação rápida">
+        <a href="${ctx}/catalogo" class="${menu == 'catalogo' ? 'ativo' : ''}"><svg class="ic"><use href="#i-loja"/></svg>Catálogo</a>
+        <a href="${ctx}/carrinho" class="${menu == 'carrinho' ? 'ativo' : ''}"><svg class="ic"><use href="#i-carrinho"/></svg>Carrinho<c:if test="${nCarrinho > 0}"><span class="contador">${nCarrinho}</span></c:if></a>
+        <a href="${ctx}/minhas-compras" class="${menu == 'compras' ? 'ativo' : ''}"><svg class="ic"><use href="#i-recibo"/></svg>Compras</a>
+    </nav>
+</c:if>
+
+<script src="${ctx}/js/app.js"></script>
+</body>
+</html>

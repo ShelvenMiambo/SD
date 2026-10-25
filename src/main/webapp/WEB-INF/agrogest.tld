@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-jsptaglibrary_3_0.xsd"
+        version="3.0">
+    <description>Funções de formatação do AgroGest</description>
+    <tlib-version>1.0</tlib-version>
+    <short-name>ag</short-name>
+    <uri>http://agrogest.mz/funcoes</uri>
+
+    <function>
+        <name>mt</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String mt(java.lang.Object)</function-signature>
+    </function>
+    <function>
+        <name>num</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String num(java.lang.Object)</function-signature>
+    </function>
+    <function>
+        <name>data</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String data(java.time.LocalDate)</function-signature>
+    </function>
+    <function>
+        <name>dataHora</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String dataHora(java.time.LocalDateTime)</function-signature>
+    </function>
+    <function>
+        <name>iso</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String iso(java.time.LocalDate)</function-signature>
+    </function>
+    <function>
+        <name>foto</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>java.lang.String foto(java.lang.String, java.lang.Object, java.lang.String)</function-signature>
+    </function>
+    <function>
+        <name>expirado</name>
+        <function-class>mz.agrogest.util.Formatos</function-class>
+        <function-signature>boolean expirado(java.time.LocalDate)</function-signature>
+    </function>
+</taglib>

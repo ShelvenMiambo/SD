@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- Cookie de sessão com SameSite=Lax: protege os formulários POST contra CSRF entre sites. -->
+    <CookieProcessor sameSiteCookies="lax"/>
+    <!-- A persistência é feita pela aplicação (.ser); não guardar sessões entre reinícios. -->
+    <Manager pathname=""/>
+</Context>

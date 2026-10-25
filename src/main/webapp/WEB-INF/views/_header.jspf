@@ -1,0 +1,144 @@
+<%--
+  Cabeçalho comum. Antes de incluir, a página pode definir:
+    titulo  – texto do <title>
+    menu    – item activo da navegação
+    layout  – 'auth' (ecrã dividido, sem navegação) ou 'inicio' (página pública, sem margens)
+  O administrador tem layout de aplicação (barra lateral); cliente e visitante têm barra superior.
+--%>
+<c:set var="u" value="${sessionScope.utilizador}"/>
+<c:set var="nCarrinho" value="${empty sessionScope.carrinho ? 0 : sessionScope.carrinho.totalLinhas}"/>
+<c:set var="modoApp" value="${u.admin and layout != 'auth'}"/>
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+    <title><c:out value="${titulo}"/> · AgroGest</title>
+    <script>try { var t = localStorage.getItem('agrogest-tema'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="icon" href="${ctx}/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="${ctx}/css/style.css">
+</head>
+<body class="${modoApp ? 'app' : ''}">
+<%@ include file="/WEB-INF/views/_icones.jspf" %>
+
+<c:choose>
+    <c:when test="${layout == 'auth'}"></c:when>
+
+    <c:when test="${modoApp}">
+        <input type="checkbox" id="lateral-toggle" class="lateral-toggle" aria-hidden="true">
+        <aside class="lateral" aria-label="Navegação da administração">
+            <a class="marca" href="${ctx}/admin">
+                <svg><use href="#i-logo"/></svg>
+                <span class="marca-nome">Agro<em>Gest</em></span>
+            </a>
+            <nav>
+                <div class="lateral-grupo">
+                    <span>Geral</span>
+                    <a href="${ctx}/admin" class="${menu == 'dashboard' ? 'ativo' : ''}"><svg class="ic"><use href="#i-painel"/></svg>Painel</a>
+                </div>
+                <div class="lateral-grupo">
+                    <span>Catálogo</span>
+                    <a href="${ctx}/admin/fornecedores" class="${menu == 'fornecedores' ? 'ativo' : ''}"><svg class="ic"><use href="#i-camiao"/></svg>Fornecedores</a>
+                    <a href="${ctx}/admin/produtos" class="${menu == 'produtos' ? 'ativo' : ''}"><svg class="ic"><use href="#i-pacote"/></svg>Produtos</a>
+                </div>
+                <div class="lateral-grupo">
+                    <span>Produção</span>
+                    <a href="${ctx}/admin/campanhas" class="${menu == 'campanhas' ? 'ativo' : ''}"><svg class="ic"><use href="#i-calendario"/></svg>Campanhas</a>
+                    <a href="${ctx}/admin/cultivos" class="${menu == 'cultivos' ? 'ativo' : ''}"><svg class="ic"><use href="#i-sprout"/></svg>Cultivos</a>
+                    <a href="${ctx}/admin/colheitas" class="${menu == 'colheitas' ? 'ativo' : ''}"><svg class="ic"><use href="#i-trigo"/></svg>Colheitas</a>
+                </div>
+                <div class="lateral-grupo">
+                    <span>Vendas</span>
+                    <a href="${ctx}/admin/compras" class="${menu == 'compras' ? 'ativo' : ''}"><svg class="ic"><use href="#i-recibo"/></svg>Compras</a>
+                    <a href="${ctx}/admin/listagens" class="${menu == 'listagens' ? 'ativo' : ''}"><svg class="ic"><use href="#i-lista"/></svg>Listagens</a>
+                    <a href="${ctx}/admin/relatorios" class="${menu == 'relatorios' ? 'ativo' : ''}"><svg class="ic"><use href="#i-grafico"/></svg>Relatórios</a>
+                </div>
+                <div class="lateral-grupo">
+                    <span>Sistema</span>
+                    <a href="${ctx}/admin/persistencia" class="${menu == 'persistencia' ? 'ativo' : ''}"><svg class="ic"><use href="#i-base-dados"/></svg>Persistência</a>
+                </div>
+            </nav>
+            <div class="lateral-rodape">
+                <span class="iniciais">${fn:toUpperCase(fn:substring(u.nome, 0, 1))}</span>
+                <span class="quem"><strong><c:out value="${u.nome}"/></strong><span>Administrador</span></span>
+                <button type="button" class="btn-icone" data-alternar-tema aria-label="Alternar modo claro/escuro">
+                    <svg class="ic tema-claro"><use href="#i-lua"/></svg>
+                    <svg class="ic tema-escuro"><use href="#i-sol"/></svg>
+                </button>
+                <form method="post" action="${ctx}/logout" style="margin:0">
+                    <button type="submit" class="btn-icone" aria-label="Sair" title="Sair"><svg class="ic"><use href="#i-sair"/></svg></button>
+                </form>
+            </div>
+        </aside>
+        <label for="lateral-toggle" class="lateral-fundo" aria-hidden="true"></label>
+        <div class="area">
+            <header class="area-topo">
+                <label for="lateral-toggle" class="btn-icone" aria-label="Abrir menu"><svg class="ic"><use href="#i-menu"/></svg></label>
+                <a class="marca" href="${ctx}/admin"><svg><use href="#i-logo"/></svg><span class="marca-nome">Agro<em>Gest</em></span></a>
+                <div class="barra-acoes">
+                    <button type="button" class="btn-icone" data-alternar-tema aria-label="Alternar modo claro/escuro">
+                        <svg class="ic tema-claro"><use href="#i-lua"/></svg>
+                        <svg class="ic tema-escuro"><use href="#i-sol"/></svg>
+                    </button>
+                </div>
+            </header>
+    </c:when>
+
+    <c:otherwise>
+        <header class="barra">
+            <div class="container barra-inner">
+                <a class="marca" href="${ctx}/" aria-label="AgroGest — início">
+                    <svg><use href="#i-logo"/></svg>
+                    <span class="marca-nome">Agro<em>Gest</em></span>
+                </a>
+                <nav aria-label="Menu principal">
+                    <c:choose>
+                        <c:when test="${not empty u}">
+                            <a href="${ctx}/catalogo" class="${menu == 'catalogo' ? 'ativo' : ''}">Catálogo</a>
+                            <a href="${ctx}/carrinho" class="${menu == 'carrinho' ? 'ativo' : ''}">Carrinho</a>
+                            <a href="${ctx}/minhas-compras" class="${menu == 'compras' ? 'ativo' : ''}">Minhas compras</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${ctx}/#como-funciona">Como funciona</a>
+                        </c:otherwise>
+                    </c:choose>
+                </nav>
+                <div class="barra-acoes">
+                    <button type="button" class="btn-icone" data-alternar-tema aria-label="Alternar modo claro/escuro">
+                        <svg class="ic tema-claro"><use href="#i-lua"/></svg>
+                        <svg class="ic tema-escuro"><use href="#i-sol"/></svg>
+                    </button>
+                    <c:choose>
+                        <c:when test="${not empty u}">
+                            <a class="btn-icone" href="${ctx}/carrinho" aria-label="Carrinho (${nCarrinho})">
+                                <svg class="ic"><use href="#i-carrinho"/></svg>
+                                <c:if test="${nCarrinho > 0}"><span class="contador">${nCarrinho}</span></c:if>
+                            </a>
+                            <span class="utilizador" title="<c:out value='${u.email}'/>">
+                                <span class="iniciais">${fn:toUpperCase(fn:substring(u.nome, 0, 1))}</span>
+                                <span class="nome"><c:out value="${u.nome}"/></span>
+                            </span>
+                            <form method="post" action="${ctx}/logout" style="margin:0">
+                                <button type="submit" class="btn-icone" aria-label="Sair" title="Sair"><svg class="ic"><use href="#i-sair"/></svg></button>
+                            </form>
+                        </c:when>
+                        <c:otherwise>
+                            <a class="btn fantasma pequeno" href="${ctx}/login">Entrar</a>
+                            <a class="btn escuro pequeno" href="${ctx}/registo">Criar conta</a>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </header>
+    </c:otherwise>
+</c:choose>
+
+<main class="conteudo ${layout == 'auth' or layout == 'inicio' ? 'sem-margem' : ''}">
+<c:if test="${layout != 'auth' and layout != 'inicio'}">
+    <%@ include file="/WEB-INF/views/_flash.jspf" %>
+</c:if>

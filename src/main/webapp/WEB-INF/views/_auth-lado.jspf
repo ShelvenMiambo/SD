@@ -1,0 +1,6 @@
+<%-- Painel escuro à esquerda dos ecrãs de autenticação --%>
+<div class="auth-lado">
+    <a class="marca" href="${ctx}/"><svg><use href="#i-logo"/></svg><span class="marca-nome">Agro<em>Gest</em></span></a>
+    <blockquote>Cada saco que sai do armazém <em>fica registado</em> na factura.</blockquote>
+    <div class="rodape-lado">Sistema de gestão agrícola · Nampula, Moçambique</div>
+</div>

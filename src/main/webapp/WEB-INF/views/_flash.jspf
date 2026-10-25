@@ -1,0 +1,8 @@
+<c:if test="${not empty sessionScope.flashOk}">
+    <div class="alerta ok" role="status"><svg class="ic"><use href="#i-visto"/></svg><span><c:out value="${sessionScope.flashOk}"/></span></div>
+    <c:remove var="flashOk" scope="session"/>
+</c:if>
+<c:if test="${not empty sessionScope.flashErro}">
+    <div class="alerta erro" role="alert"><svg class="ic"><use href="#i-aviso"/></svg><span><c:out value="${sessionScope.flashErro}"/></span></div>
+    <c:remove var="flashErro" scope="session"/>
+</c:if>

@@ -1,0 +1,10 @@
+target/
+*.ser
+*.ser.bak
+*.ser.tmp
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project

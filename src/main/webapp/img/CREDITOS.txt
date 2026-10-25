@@ -1,0 +1,29 @@
+Créditos das imagens usadas no AgroGest
+=======================================
+
+Fotografias de produtos (img/produtos/) — Wikimedia Commons
+-----------------------------------------------------------
+milho.jpg / semente.jpg
+  "Zea mays seeds closeup" — Rasbak — CC BY-SA 3.0
+  https://commons.wikimedia.org/wiki/File:Zea_mays_seeds_closeup.jpg
+
+adubo.jpg / fertilizante.jpg
+  "DAP (Diammonium Phosphate) Granules (1)" — Suyash Dwivedi — CC BY-SA 4.0
+  https://commons.wikimedia.org/wiki/File:DAP_(Diammonium_Phosphate)_Granules_(1).jpg
+
+enxada.jpg / ferramenta.jpg
+  "Hoe (Ghana)" — Achiri Bitamsimli — CC BY-SA 4.0
+  https://commons.wikimedia.org/wiki/File:Hoe_(Ghana).jpg
+
+feijao-nhemba.jpg
+  "Seeds of Cowpea at Attappady in Kerala" — Shagil Kannur — CC BY-SA 4.0
+  https://commons.wikimedia.org/wiki/File:Seeds_of_Cowpea_at_Attappady_in_Kerala.jpg
+
+trator.jpg / maquinaria.jpg
+  "Nehemiah on the tractor attached to a plough preparing the farmland for planting" — Samsule2 — CC BY-SA 4.0
+  https://commons.wikimedia.org/wiki/File:Nehemiah_on_the_tractor_attached_to_a_plough_preparing_the_farmland_for_planting.jpg
+
+As imagens foram redimensionadas para 960 px de largura. Licenças:
+  CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+  CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+

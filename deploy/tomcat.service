@@ -1,0 +1,38 @@
+# /etc/systemd/system/tomcat.service
+# Serviço systemd do Apache Tomcat 10.1 para o AgroGest.
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now tomcat
+#   sudo systemctl status tomcat
+#   sudo journalctl -u tomcat -f
+#
+# "systemctl stop" envia SIGTERM: o Tomcat encerra de forma ordenada e o AgroGest
+# grava o estado em /opt/tomcat/data/agrogest.ser antes de terminar.
+
+[Unit]
+Description=Apache Tomcat 10.1 (AgroGest)
+After=network.target
+
+[Service]
+Type=forking
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms256M -Xmx512M -Dfile.encoding=UTF-8"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh 30
+PIDFile=/opt/tomcat/temp/tomcat.pid
+
+# Dá tempo à aplicação para gravar o ficheiro de dados ao encerrar.
+TimeoutStopSec=60
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
